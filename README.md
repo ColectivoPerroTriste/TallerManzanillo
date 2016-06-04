@@ -6,7 +6,7 @@
   * [*Software* necesario](#software-necesario)
     * [Si prefieres editar en un procesador de textos](#si-prefieres-editar-en-un-procesador-de-textos)
   * [Árbol de directorios](#Árbol-de-directorios)
-  * [Más información](#más información)
+  * [Más información](#más-información)
 
 # Taller de Digitalización en Manzanillo
 
@@ -144,9 +144,11 @@ Sin embargo, sabemos que no a todas las personas les es cómodo editar directame
 
       * Imágenes PNG y JPG. Además de todas las imágenes relativas a la obra de muestra, en Perro Triste existe en consenso de llamar a la portada del libro `portada.jpg`, asegurando así una correcta manifestación en el `content.opf`, además de que nos ahorra la necesidad de volver a vincularla en el archivo `01-portada.xhtml`. Se recomienda utilizar formatos JPG para imágenes con fondo y PNG para aquellas en las que se prefiere un fondo transparente. Antes de colocarla aquí, no es mala idea comprimir la imagen para que esté más ligera y, por lo tanto, el EPUB pese menos. Un compresor en línea de imágenes en estos formatos es [tiny jpg](https://tinyjpg.com/).
 
-* `README.md`. Es este archivo. (:
-
 * `textos-muestra`. Esta carpeta contiene diferentes versiones del artículo que emplearemos como ejemplo para aprender a crear nuestro primer EPUB paso a paso.
+
+* `Licencia`. Especificaciones sobre los usos permitidos para los archivos contenidos en el repositorio.
+
+* `README.md`. Es este archivo. (:
 
 * `What_Is_EPUB_3_.epub`. Libro que explica de manera breve y concisa lo que es un EPUB versión 3.
 
