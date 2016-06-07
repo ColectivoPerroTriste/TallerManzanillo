@@ -108,7 +108,7 @@ end
 
 # Ayuda para la creación u obtención de los metadatos
 metadatosInicial = Array.new
-archivosNoLineales = Array.new
+$archivosNoLineales = Array.new
 $portada = ''
 
 # Crea un array para definir los archivos metadatos
@@ -124,7 +124,7 @@ def Metadatos (conjunto, texto, dc)
 end
 
 # Obtiene todos los metadatos
-def MetadatosTodo (metadatosInicial, archivosNoLineales)
+def MetadatosTodo (metadatosInicial)
 
     # Obtiene los metadatos
     Metadatos metadatosInicial, "\nTítulo", "dc:title"
@@ -143,35 +143,35 @@ def MetadatosTodo (metadatosInicial, archivosNoLineales)
     end
 
     # Crea un array para definir los archivos XHTML ocultos
-    def NoLineal (conjunto)
+    def noLineal
         puts "\nNombre del archivo XHTML sin su extensión" + $blanco
         archivoOculto = gets.chomp
         if archivoOculto != ""
-            conjunto.push(archivoOculto)
-            NoLineal conjunto
+            $archivosNoLineales.push(archivoOculto)
+            noLineal
         end
     end
 
     # Determina si es necesario definir archivos ocultos
-    def NoLinealRespuesta (conjunto)
+    def noLinealRespuesta
         puts "\n¿Existen archivos XHTML que se desean ocultar? [y o N]:"
         respuesta = gets.chomp.downcase
         if (respuesta != "")
             if (respuesta != "n")
                 if (respuesta == "y")
-                    NoLineal conjunto
+                    noLineal
                 else
-                    NoLinealRespuesta conjunto
+                    noLinealRespuesta
                 end
             end
         end
     end
 
     # Obtiene los archivos ocultos
-    NoLinealRespuesta archivosNoLineales
+    noLinealRespuesta
 
     # Ayuda a la creación u obtención de metadatos
-    archivosNoLineales.push(' ')
+    $archivosNoLineales.push(' ')
 
     # Crea el archivo oculto con metadatos
     archivoMetadatos = File.new(".hacedor-metadata", "w")
@@ -180,7 +180,7 @@ def MetadatosTodo (metadatosInicial, archivosNoLineales)
         archivoMetadatos.puts "_M_" + mI
     end
 
-    archivosNoLineales.each do |aN|
+    $archivosNoLineales.each do |aN|
         archivoMetadatos.puts "_O_" + aN
     end
 
@@ -198,21 +198,21 @@ if metadatosPreexistentes == true
     respuestaMetadatos = ''
 
     # Pregunta sobre la pertinencia de reutilizar los metadatos
-    def PreguntaMetadatos (metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, respuestaMetadatos)
+    def PreguntaMetadatos (metadatoPreexistenteNombre, metadatosInicial, respuestaMetadatos)
         puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [Y o n]:"
         respuestaMetadatos = gets.chomp.downcase
 
         if respuestaMetadatos == '' or respuestaMetadatos == 'y'
-            ReutilizacionMetadatos metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales
+            ReutilizacionMetadatos metadatoPreexistenteNombre, metadatosInicial
         elsif respuestaMetadatos == 'n'
-            MetadatosTodo metadatosInicial, archivosNoLineales
+            MetadatosTodo metadatosInicial
         else
-            PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, respuestaMetadatos
+            PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, respuestaMetadatos
         end
     end
 
     # Reutiliza los metadatos
-    def ReutilizacionMetadatos (metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales)
+    def ReutilizacionMetadatos (metadatoPreexistenteNombre, metadatosInicial)
         metadatoPreexistente = File.open(metadatoPreexistenteNombre)
         metadatoPreexistente.each do |linea|
             # Permite separar los metadatos según su tipo
@@ -222,7 +222,7 @@ if metadatosPreexistentes == true
                     metadatosInicial.push(linea[3...-1])
                 end
             elsif linea[0...3] == "_O_"
-                archivosNoLineales.push(linea[3...-1])
+                $archivosNoLineales.push(linea[3...-1])
             elsif linea[0...3] == "_P_"
                 $portada = linea[3...-1]
             end
@@ -232,10 +232,10 @@ if metadatosPreexistentes == true
         Metadatos metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
     end
 
-    PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, respuestaMetadatos
+    PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, respuestaMetadatos
 # Si no existen metadatos, los pide
 else
-    MetadatosTodo metadatosInicial, archivosNoLineales
+    MetadatosTodo metadatosInicial
 end
 
 # Sirve para añadir elementos
@@ -363,9 +363,9 @@ def Tipo (extension)
 end
 
 # Determina si se le pone un atributo no lienal al XHTML
-def NoLinealCotejo (conjunto, identificador)
+def NoLinealCotejo (identificador)
     retorno = ""
-    conjunto.each do |comparar|
+    $archivosNoLineales.each do |comparar|
         comparador = "id_" + comparar + "_xhtml"
         if comparador == identificador
             retorno = ' linear="no"'
@@ -396,7 +396,7 @@ Dir.glob(carpeta + '/**/*.*') do |archivoManifiesto|
         propiedad = Propiedad File.basename(archivoManifiesto), $portada, 'cover-image'
         propiedad2 = Propiedad File.basename(archivoManifiesto), nav, 'nav'
         # Añade la propiedad no lineal, si la hay
-        noLineal = NoLinealCotejo archivosNoLineales, identificador
+        noLineal = NoLinealCotejo identificador
         # Agrega los elementos al manifiesto
         manifiesto.push('        <item href="' + rutaRelativa[indice] + '" id="' + identificador + '" media-type="' + tipo.to_s + '"' + propiedad.to_s + propiedad2.to_s + ' />')
         # Agrega los elementos a la espina
