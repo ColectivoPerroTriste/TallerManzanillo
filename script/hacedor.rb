@@ -34,16 +34,20 @@ puts "\nEste script ayuda a crear  y sustituir el content.opf, el toc.ncx y el n
 puts "En sistemas UNIX también creará o sustituirá el archivo EPUB."
 puts "Ningún archivo oculto será contemplado."
 
+# Enmienda ciertos problemas con la línea de texto
+def ArregloRuta (elemento)
+    if elemento[-1] == ' '
+        elemento = elemento[0...-1]
+    end
+    return elemento.gsub('\ ', ' ').gsub('\'', '')
+end
+
 # Determina si en la carpeta hay un EPUB
 def Carpeta (carpeta, primerosArchivos)
     puts "\nArrastra la carpeta donde están los archivos para el EPUB."
     carpeta = gets.chomp
 
-    # Enmienda ciertos problemas con la línea de texto
-    if carpeta[-1] == ' '
-        carpeta = carpeta[0...-1]
-    end
-    carpeta = carpeta.gsub('\ ', ' ').gsub('\'', '')
+    carpeta = ArregloRuta carpeta
 
     # Se parte del supuesto de que la carpeta no es para un EPUB
     epub = false
@@ -76,8 +80,37 @@ end
 # Obtiene la carpeta de los archivos del EPUB
 carpeta = Carpeta carpeta, primerosArchivos
 
-puts "\n"
-puts "\nResponde lo siguiente"
+# Se obtiene la ruta para el EPUB
+ruta = carpeta.split("/")
+rutaPadre = ''
+ruta.each do |parte|
+    if parte != ruta.last
+        if parte != ruta.first
+            rutaPadre += '/' + parte
+        else
+            rutaPadre += parte
+        end
+    end
+end
+
+rutaPadre = ArregloRuta rutaPadre
+
+# Verifica si existe un archivo oculto de metadatos
+Dir.chdir(rutaPadre)
+
+metadatosPreexistentes = false
+metadatoPreexistenteNombre = ".hacedor-metadata"
+
+Dir.glob(rutaPadre + '/.*') do |archivo|
+    if File.basename(archivo) == metadatoPreexistenteNombre
+        metadatosPreexistentes = true
+    end
+end
+
+# Ayuda para la creación u obtención de los metadatos
+metadatosInicial = Array.new
+archivosNoLineales = Array.new
+portada = ''
 
 # Crea un array para definir los archivos metadatos
 def Metadatos (b, conjunto, texto, dc)
@@ -91,47 +124,120 @@ def Metadatos (b, conjunto, texto, dc)
     end
 end
 
-# Obtiene los metadatos
-metadatosInicial = Array.new
-Metadatos necesario, metadatosInicial, "\nTítulo", "dc:title"
-Metadatos necesario, metadatosInicial, "\nNombre del autor o editor principal (ejemplo: Apellido, Nombre)", "dc:creator"
-Metadatos necesario, metadatosInicial, "\nEditorial", "dc:publisher"
-Metadatos necesario, metadatosInicial, "\nSinopsis", "dc:description"
-Metadatos necesario, metadatosInicial, "\nLenguaje (ejemplo: es)", "dc:language"
-Metadatos necesario, metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
+# Obtiene todos los metadatos
+def MetadatosTodo (necesario, blanco, metadatosInicial, archivosNoLineales, portada)
 
-# Asigna el nombre de la portada para ponerle su atributo
-puts "\nNombre de la portada (ejemplo: portada.jpg)" + blanco
-portada = gets.chomp
+    # Obtiene los metadatos
+    Metadatos necesario, metadatosInicial, "\nTítulo", "dc:title"
+    Metadatos necesario, metadatosInicial, "\nNombre del autor o editor principal (ejemplo: Apellido, Nombre)", "dc:creator"
+    Metadatos necesario, metadatosInicial, "\nEditorial", "dc:publisher"
+    Metadatos necesario, metadatosInicial, "\nSinopsis", "dc:description"
+    Metadatos necesario, metadatosInicial, "\nLenguaje (ejemplo: es)", "dc:language"
+    Metadatos necesario, metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
 
-# Crea un array para definir los archivos XHTML ocultos
-def NoLineal (b, conjunto)
-    puts "\nNombre del archivo XHTML sin su extensión" + b
-    archivoOculto = gets.chomp
-    if archivoOculto != ""
-        conjunto.push(archivoOculto)
-        NoLineal b, conjunto
+    # Asigna el nombre de la portada para ponerle su atributo
+    puts "\nNombre de la portada (ejemplo: portada.jpg)" + blanco
+    portada = gets.chomp
+
+    if portada == ''
+        portada = ' '
     end
-end
 
-# Determina si es necesario definir archivos ocultos
-def NoLinealRespuesta (b, conjunto)
-    puts "\n¿Existen archivos XHTML que se desean ocultar? [y o N]:"
-    respuesta = gets.chomp
-    if (respuesta != "")
-        if (respuesta != "N")
-            if (respuesta == "y")
-                NoLineal b, conjunto
-            else
-                NoLinealRespuesta b, conjunto
+    # Crea un array para definir los archivos XHTML ocultos
+    def NoLineal (b, conjunto)
+        puts "\nNombre del archivo XHTML sin su extensión" + b
+        archivoOculto = gets.chomp
+        if archivoOculto != ""
+            conjunto.push(archivoOculto)
+            NoLineal b, conjunto
+        end
+    end
+
+    # Determina si es necesario definir archivos ocultos
+    def NoLinealRespuesta (b, conjunto)
+        puts "\n¿Existen archivos XHTML que se desean ocultar? [y o N]:"
+        respuesta = gets.chomp.downcase
+        if (respuesta != "")
+            if (respuesta != "n")
+                if (respuesta == "y")
+                    NoLineal b, conjunto
+                else
+                    NoLinealRespuesta b, conjunto
+                end
             end
         end
     end
+
+    # Obtiene los archivos ocultos
+    NoLinealRespuesta blanco, archivosNoLineales
+
+    # Ayuda a la creación u obtención de metadatos
+    archivosNoLineales.push(' ')
+
+    # Crea el archivo oculto con metadatos
+    archivoMetadatos = File.new(".hacedor-metadata", "w")
+
+    metadatosInicial.each do |mI|
+        archivoMetadatos.puts "_M_" + mI
+    end
+
+    archivosNoLineales.each do |aN|
+        archivoMetadatos.puts "_O_" + aN
+    end
+
+    archivoMetadatos.puts "_P_" + portada.to_s
+
+    archivoMetadatos.close
 end
 
-# Obtiene los archivos ocultos
-archivosNoLineales = Array.new
-NoLinealRespuesta blanco, archivosNoLineales
+# Continúa con la petición de información adicional
+puts "\n"
+puts "\nResponde lo siguiente"
+
+# Si existen metadatos
+if metadatosPreexistentes == true
+    respuestaMetadatos = ''
+
+    # Pregunta sobre la pertinencia de reutilizar los metadatos
+    def PreguntaMetadatos (necesario, blanco, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada, respuestaMetadatos)
+        puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [Y o n]:"
+        respuestaMetadatos = gets.chomp.downcase
+
+        if respuestaMetadatos == '' or respuestaMetadatos == 'y'
+            ReutilizacionMetadatos necesario, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada
+        elsif respuestaMetadatos == 'n'
+            MetadatosTodo necesario, blanco, metadatosInicial, archivosNoLineales, portada
+        else
+            PreguntaMetadatos necesario, blanco, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada, respuestaMetadatos
+        end
+    end
+
+    # Reutiliza los metadatos
+    def ReutilizacionMetadatos (necesario, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada)
+        metadatoPreexistente = File.open(metadatoPreexistenteNombre)
+        metadatoPreexistente.each do |linea|
+            # Permite separar los metadatos según su tipo
+            if linea[0...3] == "_M_"
+                # Evita copiar la versión
+                if linea[-11...-1] != "identifier"
+                    metadatosInicial.push(linea[3...-1])
+                end
+            elsif linea[0...3] == "_O_"
+                archivosNoLineales.push(linea[3...-1])
+            elsif linea[0...3] == "_P_"
+                portada = linea[3...-1]
+            end
+        end
+
+        # Pregunta de nuevo por la versión
+        Metadatos necesario, metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
+    end
+
+    PreguntaMetadatos necesario, blanco, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada, respuestaMetadatos
+# Si no existen metadatos, los pide
+else
+    MetadatosTodo necesario, blanco, metadatosInicial, archivosNoLineales, portada
+end
 
 # Sirve para añadir elementos
 indice = 0
@@ -344,27 +450,14 @@ Dir.glob(carpeta + '/**/*.*') do |archivo|
     end
 end
 
+# Va a la carpeta del EPUB para tener posibilidad de crearlo
+Dir.chdir(carpeta)
+
 # Fin
 mensajeFinal = "\nEl proceso ha terminado."
 
 if OS.unix?
-    # Va a la carpeta del EPUB para tener posibilidad de crearlo
-    Dir.chdir(carpeta)
-
     puts "\nCreando EPUB..."
-
-    # Se obtiene la ruta para el EPUB
-    ruta = carpeta.split("/")
-    rutaPadre = ''
-    ruta.each do |parte|
-        if parte != ruta.last
-            if parte != ruta.first
-                rutaPadre += '/' + parte
-            else
-                rutaPadre += parte
-            end
-        end
-    end
 
     # Crea la ruta para el EPUB
     rutaEPUB = "../#{ruta.last}.epub"
