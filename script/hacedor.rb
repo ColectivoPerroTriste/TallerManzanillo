@@ -15,8 +15,8 @@ module OS
 end
 
 # Elementos comunes de lo que se imprime
-blanco = ' [dejar en blanco para ignorar]:'
-necesario = ' [campo necesario]:'
+$blanco = ' [dejar en blanco para ignorar]:'
+$necesario = ' [campo necesario]:'
 
 # Elemento común para crear los archivos
 carpeta = ''
@@ -30,9 +30,8 @@ identificadorLibro = ''
 nav = ''
 
 # Inicio
-puts "\nEste script ayuda a crear  y sustituir el content.opf, el toc.ncx y el nav.xhtml de un EPUB."
-puts "En sistemas UNIX también creará o sustituirá el archivo EPUB."
-puts "Ningún archivo oculto será contemplado."
+puts "\nEste script recrea los archivos OPF, NCX y nav.xhtml."
+puts "En sistemas UNIX también crea o modifica el archivo EPUB."
 
 # Enmienda ciertos problemas con la línea de texto
 def ArregloRuta (elemento)
@@ -72,7 +71,7 @@ def Carpeta (carpeta, primerosArchivos)
             return carpeta
         end
     else
-        puts "\nNo se ingreso una ruta válida."
+        puts "\nNo se ingresó una ruta válida."
         Carpeta carpeta, primerosArchivos
     end
 end
@@ -110,66 +109,66 @@ end
 # Ayuda para la creación u obtención de los metadatos
 metadatosInicial = Array.new
 archivosNoLineales = Array.new
-portada = ''
+$portada = ''
 
 # Crea un array para definir los archivos metadatos
-def Metadatos (b, conjunto, texto, dc)
-    puts texto + b
+def Metadatos (conjunto, texto, dc)
+    puts texto + $necesario
     metadato = gets.chomp
     coletilla = "@" + dc
     if metadato != ""
         conjunto.push(metadato + coletilla)
     else
-        Metadatos b, conjunto, texto, dc
+        Metadatos conjunto, texto, dc
     end
 end
 
 # Obtiene todos los metadatos
-def MetadatosTodo (necesario, blanco, metadatosInicial, archivosNoLineales, portada)
+def MetadatosTodo (metadatosInicial, archivosNoLineales)
 
     # Obtiene los metadatos
-    Metadatos necesario, metadatosInicial, "\nTítulo", "dc:title"
-    Metadatos necesario, metadatosInicial, "\nNombre del autor o editor principal (ejemplo: Apellido, Nombre)", "dc:creator"
-    Metadatos necesario, metadatosInicial, "\nEditorial", "dc:publisher"
-    Metadatos necesario, metadatosInicial, "\nSinopsis", "dc:description"
-    Metadatos necesario, metadatosInicial, "\nLenguaje (ejemplo: es)", "dc:language"
-    Metadatos necesario, metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
+    Metadatos metadatosInicial, "\nTítulo", "dc:title"
+    Metadatos metadatosInicial, "\nNombre del autor o editor principal (ejemplo: Apellido, Nombre)", "dc:creator"
+    Metadatos metadatosInicial, "\nEditorial", "dc:publisher"
+    Metadatos metadatosInicial, "\nSinopsis", "dc:description"
+    Metadatos metadatosInicial, "\nLenguaje (ejemplo: es)", "dc:language"
+    Metadatos metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
 
     # Asigna el nombre de la portada para ponerle su atributo
-    puts "\nNombre de la portada (ejemplo: portada.jpg)" + blanco
-    portada = gets.chomp
+    puts "\nNombre de la portada (ejemplo: portada.jpg)" + $blanco
+    $portada = gets.chomp
 
-    if portada == ''
-        portada = ' '
+    if $portada == ''
+        $portada = ' '
     end
 
     # Crea un array para definir los archivos XHTML ocultos
-    def NoLineal (b, conjunto)
-        puts "\nNombre del archivo XHTML sin su extensión" + b
+    def NoLineal (conjunto)
+        puts "\nNombre del archivo XHTML sin su extensión" + $blanco
         archivoOculto = gets.chomp
         if archivoOculto != ""
             conjunto.push(archivoOculto)
-            NoLineal b, conjunto
+            NoLineal conjunto
         end
     end
 
     # Determina si es necesario definir archivos ocultos
-    def NoLinealRespuesta (b, conjunto)
+    def NoLinealRespuesta (conjunto)
         puts "\n¿Existen archivos XHTML que se desean ocultar? [y o N]:"
         respuesta = gets.chomp.downcase
         if (respuesta != "")
             if (respuesta != "n")
                 if (respuesta == "y")
-                    NoLineal b, conjunto
+                    NoLineal conjunto
                 else
-                    NoLinealRespuesta b, conjunto
+                    NoLinealRespuesta conjunto
                 end
             end
         end
     end
 
     # Obtiene los archivos ocultos
-    NoLinealRespuesta blanco, archivosNoLineales
+    NoLinealRespuesta archivosNoLineales
 
     # Ayuda a la creación u obtención de metadatos
     archivosNoLineales.push(' ')
@@ -185,7 +184,7 @@ def MetadatosTodo (necesario, blanco, metadatosInicial, archivosNoLineales, port
         archivoMetadatos.puts "_O_" + aN
     end
 
-    archivoMetadatos.puts "_P_" + portada.to_s
+    archivoMetadatos.puts "_P_" + $portada.to_s
 
     archivoMetadatos.close
 end
@@ -199,21 +198,21 @@ if metadatosPreexistentes == true
     respuestaMetadatos = ''
 
     # Pregunta sobre la pertinencia de reutilizar los metadatos
-    def PreguntaMetadatos (necesario, blanco, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada, respuestaMetadatos)
+    def PreguntaMetadatos (metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, respuestaMetadatos)
         puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [Y o n]:"
         respuestaMetadatos = gets.chomp.downcase
 
         if respuestaMetadatos == '' or respuestaMetadatos == 'y'
-            ReutilizacionMetadatos necesario, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada
+            ReutilizacionMetadatos metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales
         elsif respuestaMetadatos == 'n'
-            MetadatosTodo necesario, blanco, metadatosInicial, archivosNoLineales, portada
+            MetadatosTodo metadatosInicial, archivosNoLineales
         else
-            PreguntaMetadatos necesario, blanco, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada, respuestaMetadatos
+            PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, respuestaMetadatos
         end
     end
 
     # Reutiliza los metadatos
-    def ReutilizacionMetadatos (necesario, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada)
+    def ReutilizacionMetadatos (metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales)
         metadatoPreexistente = File.open(metadatoPreexistenteNombre)
         metadatoPreexistente.each do |linea|
             # Permite separar los metadatos según su tipo
@@ -225,18 +224,18 @@ if metadatosPreexistentes == true
             elsif linea[0...3] == "_O_"
                 archivosNoLineales.push(linea[3...-1])
             elsif linea[0...3] == "_P_"
-                portada = linea[3...-1]
+                $portada = linea[3...-1]
             end
         end
 
         # Pregunta de nuevo por la versión
-        Metadatos necesario, metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
+        Metadatos metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
     end
 
-    PreguntaMetadatos necesario, blanco, metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, portada, respuestaMetadatos
+    PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, archivosNoLineales, respuestaMetadatos
 # Si no existen metadatos, los pide
 else
-    MetadatosTodo necesario, blanco, metadatosInicial, archivosNoLineales, portada
+    MetadatosTodo metadatosInicial, archivosNoLineales
 end
 
 # Sirve para añadir elementos
@@ -394,7 +393,7 @@ Dir.glob(carpeta + '/**/*.*') do |archivoManifiesto|
         # Añade el tipo de recurso
         tipo = Tipo File.extname(archivoManifiesto)
         # Añade propiedades
-        propiedad = Propiedad File.basename(archivoManifiesto), portada, 'cover-image'
+        propiedad = Propiedad File.basename(archivoManifiesto), $portada, 'cover-image'
         propiedad2 = Propiedad File.basename(archivoManifiesto), nav, 'nav'
         # Añade la propiedad no lineal, si la hay
         noLineal = NoLinealCotejo archivosNoLineales, identificador
