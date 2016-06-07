@@ -104,7 +104,11 @@ información en la carpeta padre de la raíz de los archivos para el EPUB.
 
 ### Recreación del NCX
 
+**En desarrollo**
+
 ### Recreación del `nav.xhtml`
+
+**En desarrollo**
 
 ### Creación o modificación del EPUB
 
