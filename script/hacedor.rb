@@ -15,12 +15,12 @@ module OS
 end
 
 # Elementos comunes de lo que se imprime
-$blanco = ' [dejar en blanco para ignorar]:'
+$blanco = ' [dejar en blanco para ignorar o terminar]:'
 $necesario = ' [campo necesario]:'
 
 # Elemento común para crear los archivos
-carpeta = ''
-primerosArchivos = Array.new
+$carpeta = ''
+$primerosArchivos = Array.new
 
 # Ayuda a crear el uid del libro
 nombreLibro = ''
@@ -42,45 +42,43 @@ def ArregloRuta (elemento)
 end
 
 # Determina si en la carpeta hay un EPUB
-def Carpeta (carpeta, primerosArchivos)
+def carpetaBusqueda
     puts "\nArrastra la carpeta donde están los archivos para el EPUB."
-    carpeta = gets.chomp
+    $carpeta = gets.chomp
 
-    carpeta = ArregloRuta carpeta
+    $carpeta = ArregloRuta $carpeta
 
     # Se parte del supuesto de que la carpeta no es para un EPUB
     epub = false
 
     # Si no se da una línea vacía
-    if carpeta != ''
+    if $carpeta != ''
         # Si dentro de los directorios hay un opf, entonces se supone que hay archivos para un EPUB
-        Dir.glob(carpeta + '/**') do |archivo|
+        Dir.glob($carpeta + '/**') do |archivo|
             if File.basename(archivo) == "mimetype"
                 epub = true
             else
                 # Sirve para la creación del EPUB
-                primerosArchivos.push(File.basename(archivo))
+                $primerosArchivos.push(File.basename(archivo))
             end
         end
 
         # Ofrece un resultado
         if epub == false
             puts "\nAl parecer en la carpeta seleccionada no es proyecto para un EPUB."
-            Carpeta carpeta, primerosArchivos
-        else
-            return carpeta
+            carpetaBusqueda
         end
     else
         puts "\nNo se ingresó una ruta válida."
-        Carpeta carpeta, primerosArchivos
+        carpetaBusqueda
     end
 end
 
 # Obtiene la carpeta de los archivos del EPUB
-carpeta = Carpeta carpeta, primerosArchivos
+carpetaBusqueda
 
 # Se obtiene la ruta para el EPUB
-ruta = carpeta.split("/")
+ruta = $carpeta.split("/")
 rutaPadre = ''
 ruta.each do |parte|
     if parte != ruta.last
@@ -98,41 +96,41 @@ rutaPadre = ArregloRuta rutaPadre
 Dir.chdir(rutaPadre)
 
 metadatosPreexistentes = false
-metadatoPreexistenteNombre = ".hacedor-metadata"
+$metadatoPreexistenteNombre = ".hacedor-metadata"
 
 Dir.glob(rutaPadre + '/.*') do |archivo|
-    if File.basename(archivo) == metadatoPreexistenteNombre
+    if File.basename(archivo) == $metadatoPreexistenteNombre
         metadatosPreexistentes = true
     end
 end
 
 # Ayuda para la creación u obtención de los metadatos
-metadatosInicial = Array.new
+$metadatosInicial = Array.new
 $archivosNoLineales = Array.new
 $portada = ''
 
 # Crea un array para definir los archivos metadatos
-def Metadatos (conjunto, texto, dc)
+def Metadatos (texto, dc)
     puts texto + $necesario
     metadato = gets.chomp
     coletilla = "@" + dc
     if metadato != ""
-        conjunto.push(metadato + coletilla)
+        $metadatosInicial.push(metadato + coletilla)
     else
-        Metadatos conjunto, texto, dc
+        Metadatos texto, dc
     end
 end
 
 # Obtiene todos los metadatos
-def MetadatosTodo (metadatosInicial)
+def metadatosTodo
 
     # Obtiene los metadatos
-    Metadatos metadatosInicial, "\nTítulo", "dc:title"
-    Metadatos metadatosInicial, "\nNombre del autor o editor principal (ejemplo: Apellido, Nombre)", "dc:creator"
-    Metadatos metadatosInicial, "\nEditorial", "dc:publisher"
-    Metadatos metadatosInicial, "\nSinopsis", "dc:description"
-    Metadatos metadatosInicial, "\nLenguaje (ejemplo: es)", "dc:language"
-    Metadatos metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
+    Metadatos "\nTítulo", "dc:title"
+    Metadatos "\nNombre del autor o editor principal (ejemplo: Apellido, Nombre)", "dc:creator"
+    Metadatos "\nEditorial", "dc:publisher"
+    Metadatos "\nSinopsis", "dc:description"
+    Metadatos "\nLenguaje (ejemplo: es)", "dc:language"
+    Metadatos "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
 
     # Asigna el nombre de la portada para ponerle su atributo
     puts "\nNombre de la portada (ejemplo: portada.jpg)" + $blanco
@@ -176,7 +174,7 @@ def MetadatosTodo (metadatosInicial)
     # Crea el archivo oculto con metadatos
     archivoMetadatos = File.new(".hacedor-metadata", "w")
 
-    metadatosInicial.each do |mI|
+    $metadatosInicial.each do |mI|
         archivoMetadatos.puts "_M_" + mI
     end
 
@@ -195,31 +193,31 @@ puts "\nResponde lo siguiente"
 
 # Si existen metadatos
 if metadatosPreexistentes == true
-    respuestaMetadatos = ''
+    $respuestaMetadatos = ''
 
     # Pregunta sobre la pertinencia de reutilizar los metadatos
-    def PreguntaMetadatos (metadatoPreexistenteNombre, metadatosInicial, respuestaMetadatos)
+    def preguntaMetadatos
         puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [Y o n]:"
-        respuestaMetadatos = gets.chomp.downcase
+        $respuestaMetadatos = gets.chomp.downcase
 
-        if respuestaMetadatos == '' or respuestaMetadatos == 'y'
-            ReutilizacionMetadatos metadatoPreexistenteNombre, metadatosInicial
-        elsif respuestaMetadatos == 'n'
-            MetadatosTodo metadatosInicial
+        if $respuestaMetadatos == '' or $respuestaMetadatos == 'y'
+            reutilizacionMetadatos
+        elsif $respuestaMetadatos == 'n'
+            metadatosTodo
         else
-            PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, respuestaMetadatos
+            preguntaMetadatos
         end
     end
 
     # Reutiliza los metadatos
-    def ReutilizacionMetadatos (metadatoPreexistenteNombre, metadatosInicial)
-        metadatoPreexistente = File.open(metadatoPreexistenteNombre)
+    def reutilizacionMetadatos
+        metadatoPreexistente = File.open($metadatoPreexistenteNombre)
         metadatoPreexistente.each do |linea|
             # Permite separar los metadatos según su tipo
             if linea[0...3] == "_M_"
                 # Evita copiar la versión
                 if linea[-11...-1] != "identifier"
-                    metadatosInicial.push(linea[3...-1])
+                    $metadatosInicial.push(linea[3...-1])
                 end
             elsif linea[0...3] == "_O_"
                 $archivosNoLineales.push(linea[3...-1])
@@ -229,13 +227,13 @@ if metadatosPreexistentes == true
         end
 
         # Pregunta de nuevo por la versión
-        Metadatos metadatosInicial, "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
+        Metadatos "\nVersión (ejemplo: 1.0.0)", "dc:identifier"
     end
 
-    PreguntaMetadatos metadatoPreexistenteNombre, metadatosInicial, respuestaMetadatos
+    preguntaMetadatos
 # Si no existen metadatos, los pide
 else
-    MetadatosTodo metadatosInicial
+    metadatosTodo
 end
 
 # Sirve para añadir elementos
@@ -249,7 +247,7 @@ nombreContent = ''
 identificadorToc = ''
 
 # Obtiene las rutas absolutas
-Dir.glob(carpeta + '/**/*.*') do |archivo|
+Dir.glob($carpeta + '/**/*.*') do |archivo|
     # Los únicos dos archivos que no se necesitan es el container.xml y el content.opf
     if File.extname(archivo) != '.xml' and File.extname(archivo) != '.opf'
         rutaAbsoluta.push(archivo)
@@ -265,7 +263,7 @@ Dir.glob(carpeta + '/**/*.*') do |archivo|
 end
 
 # Crea otro conjunto que servirá para las rutas relativas
-Dir.glob(carpeta + '/**/*.*') do |archivoCorto|
+Dir.glob($carpeta + '/**/*.*') do |archivoCorto|
     if File.extname(archivoCorto) != '.xml' and File.extname(archivoCorto) != '.opf'
         rutaRelativa.push(archivoCorto)
     # Obtiene la ruta común de los archivos
@@ -289,7 +287,7 @@ espina = Array.new
 metadatos.push('    <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">')
 
 # Añade cada uno de los metadatos
-metadatosInicial.each do |dc|
+$metadatosInicial.each do |dc|
     conjunto = dc.split('@')
     uid = ''
     if conjunto[0] != 'NA'
@@ -384,7 +382,7 @@ def Propiedad (archivo, comparacion, propiedad)
 end
 
 # Recorre todos los archivos en busca de los recursos para el manifiesto y la espina
-Dir.glob(carpeta + '/**/*.*') do |archivoManifiesto|
+Dir.glob($carpeta + '/**/*.*') do |archivoManifiesto|
     if File.extname(archivoManifiesto) != '.xml' and File.extname(archivoManifiesto) != '.opf'
         # Crea el identificador
         identificador = File.basename(archivoManifiesto)
@@ -414,7 +412,7 @@ espina.push('    </spine>')
 
 indice = 0
 
-Dir.glob(carpeta + '/**/*.*') do |archivo|
+Dir.glob($carpeta + '/**/*.*') do |archivo|
     if File.extname(archivo) == '.opf'
         # Inicia la recreación del content
         puts "\nRecreando el " + File.basename(archivo) + "..."
@@ -450,7 +448,7 @@ Dir.glob(carpeta + '/**/*.*') do |archivo|
 end
 
 # Va a la carpeta del EPUB para tener posibilidad de crearlo
-Dir.chdir(carpeta)
+Dir.chdir($carpeta)
 
 # Fin
 mensajeFinal = "\nEl proceso ha terminado."
@@ -463,7 +461,7 @@ if OS.unix?
 
     # Crea el EPUB
     system ("zip #{rutaEPUB} -X mimetype")
-    system ("zip #{rutaEPUB} -r #{primerosArchivos[-2]} #{primerosArchivos[-1]} -x \*.DS_Store")
+    system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store")
 
     # Finaliza la creación
     puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
