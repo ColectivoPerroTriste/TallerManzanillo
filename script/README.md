@@ -14,20 +14,23 @@ también crea o modifica el archivo EPUB.
 
 ## Dependencias
 
-Este script requiere Ruby versión 2. [Véase aquí para instalar]
+Este `script` requiere Ruby versión 2. [Véase aquí para instalar]
 (https://www.ruby-lang.org/en/documentation/installation/#rubyinstaller).
 
 ## Uso
 
-###### 1. Desde el *shell* se ordena arrancar el script con `ruby RUTA/hacedor.rb`.
+###### 1. Desde el *shell* se ordena arrancar el `script` con `ruby RUTA/hacedor.rb`.
+
   * Para mayor comodidad solo escribe en el *shell* `ruby ` [con un espacio al
   final] y arrastra el archivo `hacedor.rb`.
 
 ###### 2. Indica la carpeta donde están los archivos para el EPUB.
+
   * Se tiene que poner la ruta absoluta sin `~`, para mayor comodidad solo
   arrastra la carpeta al *shell*.
 
 ###### 3. A continuación responde lo que se te pide.
+
   * *Si se crea por primera vez*. Para poder crear ciertos metadatos es
   necesario indicar el título, el autor o editor principal, la editorial, la
   sinopsis, el lenguaje, la versión, la portada (opcional) y las secciones
@@ -47,13 +50,14 @@ Este script requiere Ruby versión 2. [Véase aquí para instalar]
   vez. Por defecto la respuesta es sí.
     * Los metadatos existentes solo incluyen el título, el autor o editor
     principal, la editorial, la sinopsis, el lenguaje, la portada (opcional) y
-    las secciones ocultas de la obra. *El resto de la información se vuelve a
-    generar*
+    las secciones ocultas de la obra. El resto de la información se vuelve a
+    generar.
 
     * Siempre se pide la versión de la obra para posibilidad un control de
     versiones.
 
 ###### 4. ¡Es todo!
+
   * Desde el *shell* puedes leer cómo se recrean los siguientes archivos:
     * El archivo OPF.
     * El archivo NCX.
@@ -67,21 +71,21 @@ Este script requiere Ruby versión 2. [Véase aquí para instalar]
 La mayoría de los archivos EPUB tienen similitudes en su estructura, lo cual
 hace conveniente la utilización de plantillas. Si bien esto evita el problema
 de crear la estructura desde cero, persisten las dificultades de rehacer el OPF,
-el NCX y el `nav.xhtml`. En la gran mayoría de los casos, solo los metadatos
-requieren de una intervención directa. Ante esta problemática, este script está
-pensado para automatizar la serie de tareas monótonas para disminuir los
-tiempos de desarrollo.
+el NCX y el `nav.xhtml`. En la gran mayoría de los casos, solo alguns metadatos
+requieren de una intervención directa. Ante esta problemática, este `script`
+está pensado para automatizar la serie de tareas monótonas para disminuir los
+tiempos de desarrollo y aumentar los ratos de ocio. (;
 
-Para evitar la recreación en carpetas potencialmente conflictivas, el script
+Para evitar la recreación en carpetas potencialmente conflictivas, el `script`
 solo arranca si se encuentra en la carpeta raíz del futuro EPUB, al localizar
-el archivo `mimetype` en esta raíz.
+el archivo `mimetype`.
 
 ### Recreación del OPF
 
 El OPF comprende tres partes: los metadatos, el manifiesto y la espina. En los
 metadatos indicamos la información sobre el archivo (el título de la obra, por
-ejemplo). En el manifiesto se indican todos los archivos que contienen el EPUB.
-En la espina se indica el orden de lectura del libro.
+ejemplo). En el manifiesto referimos todos los archivos que contienen el EPUB.
+En la espina determinamos el orden de lectura del libro.
 
 La recreación de este archivo involucra tres etapas para cada una de estas
 partes. La primera, la recreación de los metadatos, involucra cierta
@@ -104,9 +108,18 @@ información en la carpeta padre de la raíz de los archivos para el EPUB.
 
 ### Creación o modificación del EPUB
 
-Para que Ruby tenga la posibilidad de trabajar con archivos comprimidos es
-necesaria la instalación de una gema. Con el fin de no complicar la instalación,
-se ha tomado la decisión de prescindir de ella. Por ello es que la creación o
-modificación del EPUB se hace a partir de un llamado al *shell* mediante Ruby.
+Para que Ruby tenga la posibilidad de trabajar con archivos comprimidos, como
+es el caso de los archivos EPUB, es necesaria la instalación de una gema. Con
+el fin de no complicar la instalación, se ha tomado la decisión de prescindir
+de ella. Por ello es que la creación o modificación del EPUB se hace a partir
+de un llamado al *shell* mediante Ruby.
 
 El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB.
+
+### Árbol de archivos creados
+
+* `CARPETA-PARA-EPUB`. La carpeta para el EPUB en cuya raíz está presente el
+`mimetype`.
+* `.hacedor-metadata`. El archivo oculto que se crea o modifica para conservar
+algunos metadatos.
+* `CARPETA-PARA-EPUB.epub`. El EPUB que se crea o se modifica.
