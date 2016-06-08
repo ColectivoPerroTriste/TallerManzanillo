@@ -34,16 +34,27 @@ versión mínima de Ruby que se ha probado es la 1.9.3p484.
 
   * *Si se crea por primera vez*. Para poder crear ciertos metadatos es
   necesario indicar el título, el autor o editor principal, la editorial, la
-  sinopsis, el lenguaje, la versión, la portada (opcional) y las secciones
-  ocultas de la obra (opcionales).
+  sinopsis, el lenguaje, la versión, la portada (opcional), las secciones
+  ocultas (opcionales) o las que no aparecen en la tabla de contenidos
+  (opcionales) así como la navegación (`nav.xhtml` por defecto) de la obra.
     * Aunque opcional, es ampliamente recomendable indicar cuál es la portada
     de la obra, ya que de esta manera es posible indicar cuál imagen se ha de
     renderizar en la biblioteca digital donde quizá se aloje el libro.
 
     * Las secciones ocultas no se muestran en la lectura lineal de la obra ni
-    en el índice. Estas propiedades están pensadas para notas al pie, tablas o
-    demás información adicional que se considera secundaria. Por defecto no hay
-    secciones ocultas.
+    en la tabla de contenidos. Estas propiedades están pensadas para notas al
+    pie, tablas o demás información adicional que se considera secundaria. Por
+    defecto no hay secciones ocultas.
+
+    * Las secciones que no se ven en la tabla de contenidos están pensadas para
+    secciones del libro que no se quieren mostrar ahí, pero que sí se desea que
+    formen parte de la lectura lineal de la obra, como pueden ser las
+    portadillas o la legal. Por defecto todas las secciones que no estén
+    ocultas se muestran en la tabla de contenidos.
+
+    * Para permitir más libertad, cabe la posibilidad de indicar algún nombre
+    personalizado para la navegación, pese a que en la mayoría de los casos sea
+    «nav.xhtml».
   * *Si es una creación posterior*. Lo primero que se ha de responder es si se
   desean conservar los metadatos existentes. Si se responde que sí, lo único
   que se ha de volver a introducir es la versión de la obra. Si se responde que
@@ -54,7 +65,7 @@ versión mínima de Ruby que se ha probado es la 1.9.3p484.
     las secciones ocultas de la obra. El resto de la información se vuelve a
     generar.
 
-    * Siempre se pide la versión de la obra para posibilidad un control de
+    * Siempre se pide la versión de la obra para permitir un control de
     versiones.
 
 ###### 4. ¡Es todo!
