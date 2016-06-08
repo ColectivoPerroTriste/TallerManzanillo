@@ -647,6 +647,7 @@ end
 # Otorga el título de cada documento xhtml
 def Titulo (elemento)
     titulo = ''
+    $nombreYtitulo.sort
     $nombreYtitulo.each do |i|
         if i[0] == elemento
             titulo = i[1]
@@ -749,6 +750,7 @@ end
 # Pone la lista de cada una de las páginas
 def Paginas (at)
     elemento = File.basename(at)
+    $nombreYpaginas = $nombreYpaginas.sort
     $nombreYpaginas.each do |i|
         if i[0] == elemento
             i[1].each do |j|
