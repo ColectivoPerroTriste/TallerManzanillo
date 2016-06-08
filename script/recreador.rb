@@ -171,26 +171,30 @@ def metadatosTodo
     # Obtiene los archivos ocultos
     noLinealRespuesta
 
-    # Obtiene ciertos nombres de archivos necesarios
-    def ElementosNombre (elemento, elementoNombre, porDefecto)
+    # Obtiene el nombre del nav
+    def ElementosNombre (elemento, porDefecto)
         elemento = porDefecto
+        elementos = porDefecto.split(".")
+        elementoNombre = elementos[0]
+        extension = elementos[1]
+
         puts "\nIndica el nombre del " + elementoNombre + " [" + porDefecto + " por defecto]:"
         elementoPosible = gets.chomp
 
         if elementoPosible.gsub(' ', '') == ''
             return elemento
         else
-            if elementoPosible.split(".")[-1] == "xhtml"
+            if elementoPosible.split(".")[-1] == extension
                 elemento = elementoPosible
                 return elemento
             else
                 puts "\nNombre no válido."
-                ElementosNombre elemento, elementoNombre, porDefecto
+                ElementosNombre elemento, porDefecto
             end
         end
     end
 
-    $nav = ElementosNombre $nav, 'nav', 'nav.xhtml'
+    $nav = ElementosNombre $nav, 'nav.xhtml'
 
     # Ayuda a la creación u obtención de metadatos
     $archivosNoLineales.push(' ')
@@ -207,7 +211,6 @@ def metadatosTodo
     end
 
     archivoMetadatos.puts "_P_" + $portada.to_s
-
     archivoMetadatos.puts "_N_" + $nav.to_s
 
     archivoMetadatos.close
@@ -279,7 +282,7 @@ identificadorNcx = ''
 
 # Obtiene las rutas absolutas
 Dir.glob($carpeta + '/**/*.*') do |archivo|
-    # Los únicos dos archivos que no se necesitan es el container.xml y el opf
+    # Los únicos dos archivos que no se necesitan es el container y el opf
     if File.extname(archivo) != '.xml' and File.extname(archivo) != '.opf'
         rutaAbsoluta.push(archivo)
         if File.extname(archivo) == '.ncx'
@@ -370,20 +373,34 @@ identificadorNcx = 'id_' + identificadorNcx
 
 # Identifica los tipos de recursos existentes en el opf según su tipo de extensión
 def Tipo (extension)
-    if extension == '.xhtml'
-        return 'application/xhtml+xml'
-    elsif extension == '.ttf'
-        return 'application/vnd.ms-opentype'
-    elsif extension == '.ncx'
-        return 'application/x-dtbncx+xml'
+    if extension == '.gif'
+        return 'image/gif'
     elsif extension == '.jpg' or extension == '.jpeg'
         return 'image/jpeg'
     elsif extension == '.png'
         return 'image/png'
     elsif extension == '.svg'
         return 'image/svg+xml'
+    elsif extension == '.xhtml'
+        return 'application/xhtml+xml'
+    elsif extension == '.ncx'
+        return 'application/x-dtbncx+xml'
+    elsif extension == '.ttf'
+        return 'application/vnd.ms-opentype'
+    elsif extension == '.woff'
+        return 'application/font-woff'
+    elsif extension == '.smil'
+        return 'application/smil+xml'
+    elsif extension == '.pls'
+        return 'application/pls+xml'
+    elsif extension == '.mp3'
+        return 'application/mpeg'
+    elsif extension == '.mp4'
+        return 'application/mp4'
     elsif extension == '.css'
         return 'text/css'
+    elsif extension == '.js'
+        return 'text/javascript'
     end
 end
 
@@ -570,28 +587,31 @@ end
 
 $archivosTocs = $archivosTocs.sort
 
-puts $archivosTocs
+# puts $archivosTocs
 
-#
-# # Va a la carpeta del EPUB para tener posibilidad de crearlo
-# Dir.chdir($carpeta)
-#
-# # Fin
-# mensajeFinal = "\nEl proceso ha terminado."
-#
-# if OS.unix?
-#     puts "\nCreando EPUB..."
-#
-#     # Crea la ruta para el EPUB
-#     rutaEPUB = "../#{ruta.last}.epub"
-#
-#     # Crea el EPUB
-#     system ("zip #{rutaEPUB} -X mimetype")
-#     system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store")
-#
-#     # Finaliza la creación
-#     puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
-#     puts mensajeFinal
-# else
-#     puts mensajeFinal + " Solo es necesario comprimir en formato EPUB."
-# end
+
+# Va a la carpeta del EPUB para tener posibilidad de crearlo
+Dir.chdir($carpeta)
+
+# Fin
+mensajeFinal = "\nEl proceso ha terminado."
+
+if OS.unix?
+    puts "\nCreando EPUB..."
+
+    # Crea la ruta para el EPUB
+    rutaEPUB = "../#{ruta.last}.epub"
+
+    # Elimina el EPUB previo
+    system ("rm -rf #{rutaEPUB}")
+
+    # # Crea el EPUB
+    system ("zip #{rutaEPUB} -X mimetype")
+    system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store")
+
+    # Finaliza la creación
+    puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
+    puts mensajeFinal
+else
+    puts mensajeFinal + " Solo es necesario comprimir en formato EPUB."
+end
