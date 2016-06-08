@@ -59,7 +59,7 @@ se vuelven a pedir todos los metadatos, como si se crearan por primera vez. Por
 defecto la respuesta es sí.
 
     Los metadatos existentes no excluyen la recreación de los archivos opf,
-    ncx y nav. Solo evita el trabajo repetitivo de ingresar los metadatos
+    ncx y nav. Solo evita el trabajo repetitivo de ingresar los metadatos.
 
     Siempre se pide la versión de la obra para permitir un control de
     versiones.
