@@ -98,7 +98,7 @@ rutaPadre = ArregloRuta rutaPadre
 Dir.chdir(rutaPadre)
 
 metadatosPreexistentes = false
-$metadatoPreexistenteNombre = ".hacedor-metadata"
+$metadatoPreexistenteNombre = ".recreador-metadata"
 
 Dir.glob(rutaPadre + '/.*') do |archivo|
     if File.basename(archivo) == $metadatoPreexistenteNombre
@@ -174,7 +174,7 @@ def metadatosTodo
     $archivosNoLineales.push(' ')
 
     # Crea el archivo oculto con metadatos
-    archivoMetadatos = File.new(".hacedor-metadata", "w")
+    archivoMetadatos = File.new(".recreador-metadata", "w")
 
     $metadatosInicial.each do |mI|
         archivoMetadatos.puts "_M_" + mI
