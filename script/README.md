@@ -130,7 +130,7 @@ entre el nombre del archivo y el título de ese documento.
     de estar en una misma carpeta.
 
     Los títulos de los archivos se extraen del contenido presente en la
-    etiqueta <title>
+    etiqueta <title>.
 
 ### Recreación del NAV
 
