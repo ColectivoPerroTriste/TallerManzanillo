@@ -29,10 +29,10 @@ nombreLibro = ''
 identificadorLibro = ''
 
 # Identifica el nav
-nav = ''
+$nav = ''
 
 # Inicio
-puts "\nEste script recrea los archivos OPF, NCX y nav.xhtml."
+puts "\nEste script recrea los archivos opf, ncx y nav."
 puts "En sistemas UNIX también crea o modifica el archivo EPUB."
 
 # Enmienda ciertos problemas con la línea de texto
@@ -40,7 +40,8 @@ def ArregloRuta (elemento)
     if elemento[-1] == ' '
         elemento = elemento[0...-1]
     end
-    return elemento.gsub('\ ', ' ').gsub('\'', '')
+    elementoFinal = elemento.gsub('\ ', ' ').gsub('\'', '') # Probablemente necesite modificación para Windows
+    return elementoFinal
 end
 
 # Determina si en la carpeta hay un EPUB
@@ -154,7 +155,7 @@ def metadatosTodo
 
     # Determina si es necesario definir archivos ocultos
     def noLinealRespuesta
-        puts "\n¿Existen archivos XHTML que se desean ocultar? [y o N]:"
+        puts "\n¿Existen archivos XHTML que se desean ocultar? [y/N]:"
         respuesta = gets.chomp.downcase
         if (respuesta != "")
             if (respuesta != "n")
@@ -169,6 +170,27 @@ def metadatosTodo
 
     # Obtiene los archivos ocultos
     noLinealRespuesta
+
+    # Obtiene ciertos nombres de archivos necesarios
+    def ElementosNombre (elemento, elementoNombre, porDefecto)
+        elemento = porDefecto
+        puts "\nIndica el nombre del " + elementoNombre + " [" + porDefecto + " por defecto]:"
+        elementoPosible = gets.chomp
+
+        if elementoPosible.gsub(' ', '') == ''
+            return elemento
+        else
+            if elementoPosible.split(".")[-1] == "xhtml"
+                elemento = elementoPosible
+                return elemento
+            else
+                puts "\nNombre no válido."
+                ElementosNombre elemento, elementoNombre, porDefecto
+            end
+        end
+    end
+
+    $nav = ElementosNombre $nav, 'nav', 'nav.xhtml'
 
     # Ayuda a la creación u obtención de metadatos
     $archivosNoLineales.push(' ')
@@ -186,6 +208,8 @@ def metadatosTodo
 
     archivoMetadatos.puts "_P_" + $portada.to_s
 
+    archivoMetadatos.puts "_N_" + $nav.to_s
+
     archivoMetadatos.close
 end
 
@@ -199,7 +223,7 @@ if metadatosPreexistentes == true
 
     # Pregunta sobre la pertinencia de reutilizar los metadatos
     def preguntaMetadatos
-        puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [Y o n]:"
+        puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [Y/n]:"
         $respuestaMetadatos = gets.chomp.downcase
 
         if $respuestaMetadatos == '' or $respuestaMetadatos == 'y'
@@ -215,16 +239,21 @@ if metadatosPreexistentes == true
     def reutilizacionMetadatos
         metadatoPreexistente = File.open($metadatoPreexistenteNombre)
         metadatoPreexistente.each do |linea|
+            lineaCortaInicio = linea[0...3]
+            lineaCortaFinal = linea[3...-1]
+
             # Permite separar los metadatos según su tipo
-            if linea[0...3] == "_M_"
+            if lineaCortaInicio == "_M_"
                 # Evita copiar la versión
                 if linea[-11...-1] != "identifier"
-                    $metadatosInicial.push(linea[3...-1])
+                    $metadatosInicial.push(lineaCortaFinal)
                 end
-            elsif linea[0...3] == "_O_"
-                $archivosNoLineales.push(linea[3...-1])
-            elsif linea[0...3] == "_P_"
-                $portada = linea[3...-1]
+            elsif lineaCortaInicio == "_O_"
+                $archivosNoLineales.push(lineaCortaFinal)
+            elsif lineaCortaInicio == "_P_"
+                $portada = lineaCortaFinal
+            elsif lineaCortaInicio == "_N_"
+                $nav = lineaCortaFinal
             end
         end
 
@@ -241,26 +270,26 @@ end
 # Sirve para añadir elementos
 indice = 0
 
-# Para obtener elementos constantes en el content, el toc y el nav
+# Para obtener elementos constantes en el opf, el ncx y el nav
 rutaAbsoluta = Array.new
 rutaRelativa = Array.new
 rutaComun = ''
-nombreContent = ''
-identificadorToc = ''
+nombreOpf = ''
+identificadorNcx = ''
 
 # Obtiene las rutas absolutas
 Dir.glob($carpeta + '/**/*.*') do |archivo|
-    # Los únicos dos archivos que no se necesitan es el container.xml y el content.opf
+    # Los únicos dos archivos que no se necesitan es el container.xml y el opf
     if File.extname(archivo) != '.xml' and File.extname(archivo) != '.opf'
         rutaAbsoluta.push(archivo)
-        if File.extname(archivo) == ".ncx"
-            identificadorToc = File.basename(archivo)
+        if File.extname(archivo) == '.ncx'
+            identificadorNcx = File.basename(archivo)
         end
-        if File.basename(archivo) == "nav.xhtml"
-            nav = File.basename(archivo)
+        if File.basename(archivo) == $nav
+            $nav = File.basename(archivo)
         end
     elsif File.extname(archivo) == '.opf'
-        nombreContent = File.basename(archivo)
+        nombreOpf = File.basename(archivo)
     end
 end
 
@@ -280,7 +309,7 @@ rutaRelativa.each do |elemento|
     elemento[rutaComun] = ''
 end
 
-# Para crear el content
+# Para recrear el opf
 metadatos = Array.new
 manifiesto = Array.new
 espina = Array.new
@@ -335,11 +364,11 @@ metadatos.push('        <meta property="rendition:layout">reflowable</meta>')
 metadatos.push('        <meta property="ibooks:specified-fonts">true</meta>')
 metadatos.push('    </metadata>')
 
-# Acomoda el identificador del toc.ncx
-identificadorToc['.'] = '_'
-identificadorToc = 'id_' + identificadorToc
+# Acomoda el identificador del ncx
+identificadorNcx['.'] = '_'
+identificadorNcx = 'id_' + identificadorNcx
 
-# Identifica los tipos de recursos existentes en el content según su tipo de extensión
+# Identifica los tipos de recursos existentes en el opf según su tipo de extensión
 def Tipo (extension)
     if extension == '.xhtml'
         return 'application/xhtml+xml'
@@ -393,7 +422,7 @@ Dir.glob($carpeta + '/**/*.*') do |archivoManifiesto|
 
         # Añade propiedades
         propiedad = Propiedad File.basename(archivoManifiesto), $portada, 'cover-image'
-        propiedad2 = Propiedad File.basename(archivoManifiesto), nav, 'nav'
+        propiedad2 = Propiedad File.basename(archivoManifiesto), $nav, 'nav'
 
         # Añade la propiedad no lineal, si la hay
         noLineal = NoLinealCotejo identificador
@@ -402,7 +431,7 @@ Dir.glob($carpeta + '/**/*.*') do |archivoManifiesto|
         manifiesto.push('        <item href="' + rutaRelativa[indice] + '" id="' + identificador + '" media-type="' + tipo.to_s + '"' + propiedad.to_s + propiedad2.to_s + ' />')
 
         # Agrega los elementos a la espina
-        if File.extname(archivoManifiesto) == '.xhtml' and File.basename(archivoManifiesto) != 'nav.xhtml'
+        if File.extname(archivoManifiesto) == '.xhtml' and File.basename(archivoManifiesto) != $nav
             espina.push ('        <itemref idref="' + identificador + '"' + noLineal.to_s + '/>')
         end
 
@@ -417,7 +446,7 @@ espina = espina.sort
 
 # Para el inicio del manifiesto y de la espina
 manifiesto.insert(0, '    <manifest>')
-espina.insert(0, '    <spine toc="' + identificadorToc + '">')
+espina.insert(0, '    <spine toc="' + identificadorNcx + '">')
 
 # Para el fin del manifiesto y de la espina
 manifiesto.push('    </manifest>')
@@ -427,58 +456,142 @@ indice = 0
 
 Dir.glob($carpeta + '/**/*.*') do |archivo|
     if File.extname(archivo) == '.opf'
-        # Inicia la recreación del content
+        # Inicia la recreación del opf
         puts "\nRecreando el " + File.basename(archivo) + "..."
 
-        # Abre el content
-        content = File.open(archivo, 'w')
+        # Abre el opf
+        opf = File.open(archivo, 'w')
 
         # Añade los primeros elementos necesarios
-        content.puts '<?xml version="1.0" encoding="UTF-8"?>'
-        content.puts '<package xmlns="http://www.idpf.org/2007/opf" xml:lang="en" unique-identifier="uid" prefix="ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/" version="3.0">'
+        opf.puts '<?xml version="1.0" encoding="UTF-8"?>'
+        opf.puts '<package xmlns="http://www.idpf.org/2007/opf" xml:lang="en" unique-identifier="uid" prefix="ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/" version="3.0">'
 
         # Añade los metadatos
         metadatos.each do |lineaMetadatos|
-            content.puts lineaMetadatos
+            opf.puts lineaMetadatos
         end
 
         # Añade el manifiesto
         manifiesto.each do |lineaManifiesto|
-            content.puts lineaManifiesto
+            opf.puts lineaManifiesto
         end
 
         # Añade la espina
         espina.each do |lineaEspina|
-            content.puts lineaEspina
+            opf.puts lineaEspina
         end
 
         # Añade el último elemento necesario
-        content.puts '</package>'
+        opf.puts '</package>'
 
-        # Termina el content
-        content.close
+        # Termina el opf
+        opf.close
     end
 end
 
-# Va a la carpeta del EPUB para tener posibilidad de crearlo
-Dir.chdir($carpeta)
+# Para empezar a recrear el ncx y el nav
+$archivosTocs = Array.new
+$divisor = '/'              # Probablemente necesite modificación para Windows
+$coletillaXhtml = ''
+$coletillaNav = ''
+$coletillaNcx = ''
 
-# Fin
-mensajeFinal = "\nEl proceso ha terminado."
-
-if OS.unix?
-    puts "\nCreando EPUB..."
-
-    # Crea la ruta para el EPUB
-    rutaEPUB = "../#{ruta.last}.epub"
-
-    # Crea el EPUB
-    system ("zip #{rutaEPUB} -X mimetype")
-    system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store")
-
-    # Finaliza la creación
-    puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
-    puts mensajeFinal
-else
-    puts mensajeFinal + " Solo es necesario comprimir en formato EPUB."
+# Para sacar el nivel en que se encuentran
+rutaRelativa.each do |coletillaObtencion|
+    if File.extname(coletillaObtencion) == '.xhtml'
+        if File.basename(coletillaObtencion) != $nav
+            $coletillaXhtml = coletillaObtencion.split($divisor)
+        else
+            $coletillaNav = coletillaObtencion.split($divisor)
+        end
+    else
+        if File.extname(coletillaObtencion) == '.ncx'
+            $coletillaNcx = coletillaObtencion.split($divisor)
+        end
+    end
 end
+
+# A partir de la cantidad de nieveles contenidos, se recrean las coletillas de los archivos
+def CreadorColetillas (coletilla)
+    coletillaFinal = ''
+
+    # La coletilla queda vacía suponiendo que solo exista un nivel
+    if coletilla.length > 1
+
+        # Se itera si exista más de un nivel
+        coletilla.each do |coletillas|
+
+            # Se ignora el último nivel porque es el nombre del archivo
+            if coletillas != coletilla[-1]
+
+                # Si se trata de la coletilla de los XHTML se ponen los nombres correspondientes a los niveles superiores
+                if coletilla == $coletillaXhtml
+                    coletillaFinal += coletillas.to_s + $divisor
+                # Si se trata del ncx o el nav cada nivel superior es igual a dos puntos suspensivos
+                else
+                    coletillaFinal += '..' + $divisor
+                end
+            end
+        end
+    end
+
+    # Regresa el valor obtenido
+    return coletillaFinal
+end
+
+# Saca las coletillas correspondientes
+$coletillaNcx = CreadorColetillas $coletillaNcx
+$coletillaNav = CreadorColetillas $coletillaNav
+$coletillaXhtml = CreadorColetillas $coletillaXhtml
+
+# Para sacar una ruta semejante a la rutaRelativa
+$archivosNoLinealesCompleto = Array.new
+
+$archivosNoLineales.each do |elementoNL|
+    if elementoNL != ' '
+        $archivosNoLinealesCompleto.push($coletillaXhtml + elementoNL + '.xhtml')
+    end
+end
+
+rutaRelativa.each do |rr|
+    if File.extname(rr) == '.xhtml' and File.basename(rr) != $nav
+        $archivosTocs.push(rr)
+    end
+end
+
+$archivosTocs.each do |at|
+    $archivosNoLinealesCompleto.each do |nlc|
+        if at == nlc
+            $archivosTocs.delete(at)
+            break
+        end
+    end
+end
+
+$archivosTocs = $archivosTocs.sort
+
+puts $archivosTocs
+
+#
+# # Va a la carpeta del EPUB para tener posibilidad de crearlo
+# Dir.chdir($carpeta)
+#
+# # Fin
+# mensajeFinal = "\nEl proceso ha terminado."
+#
+# if OS.unix?
+#     puts "\nCreando EPUB..."
+#
+#     # Crea la ruta para el EPUB
+#     rutaEPUB = "../#{ruta.last}.epub"
+#
+#     # Crea el EPUB
+#     system ("zip #{rutaEPUB} -X mimetype")
+#     system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store")
+#
+#     # Finaliza la creación
+#     puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
+#     puts mensajeFinal
+# else
+#     puts mensajeFinal + " Solo es necesario comprimir en formato EPUB."
+# end
