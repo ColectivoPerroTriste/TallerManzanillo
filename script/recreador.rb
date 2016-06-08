@@ -24,9 +24,11 @@ $necesario = ' [campo necesario]:'
 $carpeta = ''
 $primerosArchivos = Array.new
 
-# Ayuda a crear el uid del libro
-nombreLibro = ''
+# Ayuda a crear el uid del libro y elementos de los tocs
+$titulo = ''
 identificadorLibro = ''
+$creador = ''
+$lenguaje = ''
 
 # Identifica el nav
 $nav = ''
@@ -110,6 +112,7 @@ end
 # Ayuda para la creación u obtención de los metadatos
 $metadatosInicial = Array.new
 $archivosNoLineales = Array.new
+$archivosNoToc = Array.new
 $portada = ''
 
 # Crea un array para definir los archivos metadatos
@@ -144,32 +147,33 @@ def metadatosTodo
     end
 
     # Crea un array para definir los archivos XHTML ocultos
-    def noLineal
+    def noMostrar (archivosConjunto)
         puts "\nNombre del archivo XHTML sin su extensión" + $blanco
         archivoOculto = gets.chomp
         if archivoOculto != ""
-            $archivosNoLineales.push(archivoOculto)
-            noLineal
+            archivosConjunto.push(archivoOculto)
+            noMostrar archivosConjunto
         end
     end
 
     # Determina si es necesario definir archivos ocultos
-    def noLinealRespuesta
-        puts "\n¿Existen archivos XHTML que se desean ocultar? [y/N]:"
+    def noMostrarRespuesta (archivosConjunto, texto)
+        puts "\n" + texto + " [y/N]:"
         respuesta = gets.chomp.downcase
         if (respuesta != "")
             if (respuesta != "n")
                 if (respuesta == "y")
-                    noLineal
+                    noMostrar archivosConjunto
                 else
-                    noLinealRespuesta
+                    noMostrarRespuesta texto
                 end
             end
         end
     end
 
     # Obtiene los archivos ocultos
-    noLinealRespuesta
+    noMostrarRespuesta $archivosNoLineales, "¿Existen archivos XHTML que no se desean mostrar en la tabla de contenidos ni en la espina?"
+    noMostrarRespuesta $archivosNoToc, "¿Existen archivos XHTML que no se desean mostrar en la tabla de contenidos?"
 
     # Obtiene el nombre del nav
     def ElementosNombre (elemento, porDefecto)
@@ -198,6 +202,7 @@ def metadatosTodo
 
     # Ayuda a la creación u obtención de metadatos
     $archivosNoLineales.push(' ')
+    $archivosNoToc.push(' ')
 
     # Crea el archivo oculto con metadatos
     archivoMetadatos = File.new(".recreador-metadata", "w")
@@ -206,8 +211,12 @@ def metadatosTodo
         archivoMetadatos.puts "_M_" + mI
     end
 
-    $archivosNoLineales.each do |aN|
-        archivoMetadatos.puts "_O_" + aN
+    $archivosNoLineales.each do |aNl|
+        archivoMetadatos.puts "_O_" + aNl
+    end
+
+    $archivosNoToc.each do |aNt|
+        archivoMetadatos.puts "_T_" + aNt
     end
 
     archivoMetadatos.puts "_P_" + $portada.to_s
@@ -253,6 +262,8 @@ if metadatosPreexistentes == true
                 end
             elsif lineaCortaInicio == "_O_"
                 $archivosNoLineales.push(lineaCortaFinal)
+            elsif lineaCortaInicio == "_T_"
+                $archivosNoToc.push(lineaCortaFinal)
             elsif lineaCortaInicio == "_P_"
                 $portada = lineaCortaFinal
             elsif lineaCortaInicio == "_N_"
@@ -326,11 +337,15 @@ $metadatosInicial.each do |dc|
     uid = ''
     if conjunto[0] != 'NA'
         if conjunto[1] == 'dc:title'
-            nombreLibro = conjunto[0]
+            $titulo = conjunto[0]
         elsif conjunto[1] == 'dc:identifier'
             uid = ' id="uid"'
-            identificadorLibro = nombreLibro + '-'+ conjunto[0]
+            identificadorLibro = $titulo + '-'+ conjunto[0]
             conjunto[0] = identificadorLibro
+        elsif conjunto[1] == 'dc:creator'
+            $creador = conjunto[0]
+        elsif conjunto[1] == 'dc:language'
+            $lenguaje = conjunto[0]
         end
         metadatos.push('        <' + conjunto[1] + uid + '>' + conjunto[0] + '</' + conjunto[1] + '>')
     end
@@ -469,8 +484,6 @@ espina.insert(0, '    <spine toc="' + identificadorNcx + '">')
 manifiesto.push('    </manifest>')
 espina.push('    </spine>')
 
-indice = 0
-
 Dir.glob($carpeta + '/**/*.*') do |archivo|
     if File.extname(archivo) == '.opf'
         # Inicia la recreación del opf
@@ -481,7 +494,7 @@ Dir.glob($carpeta + '/**/*.*') do |archivo|
 
         # Añade los primeros elementos necesarios
         opf.puts '<?xml version="1.0" encoding="UTF-8"?>'
-        opf.puts '<package xmlns="http://www.idpf.org/2007/opf" xml:lang="en" unique-identifier="uid" prefix="ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/" version="3.0">'
+        opf.puts '<package xmlns="http://www.idpf.org/2007/opf" xml:lang="' + $lenguaje + '" unique-identifier="uid" prefix="ibooks: http://vocabulary.itunes.apple.com/rdf/ibooks/vocabulary-extensions-1.0/" version="3.0">'
 
         # Añade los metadatos
         metadatos.each do |lineaMetadatos|
@@ -501,7 +514,7 @@ Dir.glob($carpeta + '/**/*.*') do |archivo|
         # Añade el último elemento necesario
         opf.puts '</package>'
 
-        # Termina el opf
+        # Cierra el opf
         opf.close
     end
 end
@@ -563,32 +576,132 @@ $coletillaXhtml = CreadorColetillas $coletillaXhtml
 
 # Para sacar una ruta semejante a la rutaRelativa
 $archivosNoLinealesCompleto = Array.new
+$archivosNoTocCompleto = Array.new
 
-$archivosNoLineales.each do |elementoNL|
-    if elementoNL != ' '
-        $archivosNoLinealesCompleto.push($coletillaXhtml + elementoNL + '.xhtml')
-    end
-end
-
+# Añade los archivos para los tocs
 rutaRelativa.each do |rr|
     if File.extname(rr) == '.xhtml' and File.basename(rr) != $nav
         $archivosTocs.push(rr)
     end
 end
 
-$archivosTocs.each do |at|
-    $archivosNoLinealesCompleto.each do |nlc|
-        if at == nlc
-            $archivosTocs.delete(at)
-            break
+# Completa las rutas para poder comparar con los archivos que están en los tocs
+def Completud (conjuntoIncompleto, conjuntoCompleto)
+    conjuntoIncompleto.each do |elementoNM|
+        if elementoNM != ' ' and elementoNM != ''
+            conjuntoCompleto.push($coletillaXhtml + elementoNM + '.xhtml')
         end
     end
 end
 
+Completud $archivosNoLineales, $archivosNoLinealesCompleto
+Completud $archivosNoToc, $archivosNoTocCompleto
+
+# Ordena alfabéticamente
 $archivosTocs = $archivosTocs.sort
 
-# puts $archivosTocs
+# Crea un solo conjunto de lo que no se ha de mostrar ordenado alfabéticamente
+archivosNoMostrar = $archivosNoLinealesCompleto + $archivosNoTocCompleto
+archivosNoMostrar = archivosNoMostrar.sort
 
+# Elimina los elementos que no se tienen que mostrar
+$archivosTocs = $archivosTocs.reject {|w| archivosNoMostrar.include? w}
+
+$archivosNcx = Array.new
+$archivosNav = Array.new
+
+# puts identificadorLibro
+# puts $coletillaNcx
+# puts $coletillaNav
+# puts $titulo
+# puts $creador
+# puts $lenguaje
+
+# Añade los primeros elementos de los tocs
+$archivosNcx.push('<?xml version="1.0" encoding="UTF-8" standalone="no" ?>')
+$archivosNcx.push('<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/" version="2005-1" xml:lang="' + $lenguaje + '">')
+$archivosNcx.push('    <head>')
+$archivosNcx.push('        <meta content="' + identificadorLibro + '" name="dtb:uid"/>')
+$archivosNcx.push('        <meta content="1" name="dtb:depth"/>')
+$archivosNcx.push('        <meta content="0" name="dtb:totalPageCount"/>')
+$archivosNcx.push('        <meta content="0" name="dtb:maxPageNumber"/>')
+$archivosNcx.push('    </head>')
+$archivosNcx.push('    <docTitle>')
+$archivosNcx.push('        <text>' + $titulo + '</text>')
+$archivosNcx.push('    </docTitle>')
+$archivosNcx.push('    <docAuthor>')
+$archivosNcx.push('        <text>' + $creador + '</text>')
+$archivosNcx.push('    </docAuthor>')
+$archivosNcx.push('    <navMap>')
+
+$archivosNav.push('<?xml version="1.0" encoding="utf-8"?>')
+$archivosNav.push('<!DOCTYPE html>')
+$archivosNav.push('<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="' + $lenguaje + '" lang="' + $lenguaje + '">')
+$archivosNav.push('    <head>')
+$archivosNav.push('        <meta charset="utf-8" />')
+$archivosNav.push('        <title>' + $titulo + '</title>')
+$archivosNav.push('    </head>')
+$archivosNav.push('    <body>')
+$archivosNav.push('        <nav epub:type="toc">')
+$archivosNav.push('            <ol>')
+
+indice = 1
+
+# Para recrear los tocs
+$archivosTocs.each do |at|
+    $archivosNcx.push('        <navPoint id="navPoint-' + indice.to_s + '" playOrder="' + indice.to_s + '"><navLabel><text>ALGO</text></navLabel><content src="' + $coletillaNcx + at.to_s + '"/></navPoint>')
+    $archivosNav.push('                <li><a href="' + $coletillaNav + at.to_s + '">ALGO</a></li>')
+    indice += 1
+end
+
+# Añade los últimos elementos de los tocs y los elementos parciales del nav
+$archivosNcx.push('    </navMap>')
+$archivosNcx.push('</ncx>')
+
+$archivosNav.push('            </ol>')
+$archivosNav.push('        </nav>')
+
+# AQUÍ VA EL RESTO DEL NAV
+
+# Añade los últimos elementos del nav
+$archivosNav.push('    </body>')
+$archivosNav.push('</html>')
+
+# Mete los cambios a los archivos actuales
+def Recreador (comparativo, archivosToc)
+    archivoCambio = ''
+    archivoEncontrado = ''
+
+    # Localiza el archivo que se pretende recrear
+    Dir.glob($carpeta + '/**/*.*') do |archivo|
+        if comparativo == ".ncx"
+            if File.extname(archivo) == comparativo
+                archivoEncontrado = archivo
+            end
+        else
+            if File.basename(archivo) == comparativo
+                archivoEncontrado = archivo
+            end
+        end
+    end
+
+    # Inicia la recreación
+    puts "\nRecreando el " + File.basename(archivoEncontrado) + "..."
+
+    # Abre el archivo
+    archivoCambio = File.open(archivoEncontrado, 'w')
+
+    # Añade los elementos
+    archivosToc.each do |linea|
+        archivoCambio.puts linea
+    end
+
+    # Cierra el archivo
+    archivoCambio.close
+end
+
+Recreador '.ncx', $archivosNcx
+Recreador $nav, $archivosNav
 
 # Va a la carpeta del EPUB para tener posibilidad de crearlo
 Dir.chdir($carpeta)
