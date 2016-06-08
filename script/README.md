@@ -1,4 +1,4 @@
-# Hacedor.rb
+# Recreador.rb
 
 ## Índice
 
@@ -14,15 +14,16 @@ también crea o modifica el archivo EPUB.
 
 ## Dependencias
 
-Este `script` requiere Ruby versión 2. [Véase aquí para instalar]
-(https://www.ruby-lang.org/en/documentation/installation/#rubyinstaller).
+Este `script` requiere Ruby. [Véase aquí para instalar]
+(https://www.ruby-lang.org/en/documentation/installation/#rubyinstaller). La
+versión mínima de Ruby que se ha probado es la 1.9.3p484.
 
 ## Uso
 
-###### 1. Desde el *shell* se ordena arrancar el `script` con `ruby RUTA/hacedor.rb`.
+###### 1. Desde el *shell* se ordena arrancar el `script` con `ruby RUTA/recreador.rb`.
 
   * Para mayor comodidad solo escribe en el *shell* `ruby ` [con un espacio al
-  final] y arrastra el archivo `hacedor.rb`.
+  final] y arrastra el archivo `recreador.rb`.
 
 ###### 2. Indica la carpeta donde están los archivos para el EPUB.
 
@@ -99,7 +100,7 @@ la lectura lineal).
 
 Mucha de esta información es reutilizada para la recreación del NCX y del
 `nav.xhtml`. Además, para evitar volver a introducir la información cada vez
-que se recreen los archivos, se guarda un archivo `.hacedor-metadata` con esta
+que se recreen los archivos, se guarda un archivo `.recreador-metadata` con esta
 información en la carpeta padre de la raíz de los archivos para el EPUB.
 
 ### Recreación del NCX
@@ -124,6 +125,6 @@ El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB.
 
 * `CARPETA-PARA-EPUB`. La carpeta para el EPUB en cuya raíz está presente el
 `mimetype`.
-* `.hacedor-metadata`. El archivo oculto que se crea o modifica para conservar
+* `.recreador-metadata`. El archivo oculto que se crea o modifica para conservar
 algunos metadatos.
 * `CARPETA-PARA-EPUB.epub`. El EPUB que se crea o se modifica.
