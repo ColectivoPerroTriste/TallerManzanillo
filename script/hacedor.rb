@@ -1,3 +1,5 @@
+# encoding: utf-8
+
 # Obtiene el tipo de sistema operativo; viene de: http://stackoverflow.com/questions/170956/how-can-i-find-which-operating-system-my-ruby-program-is-running-on
 module OS
     def OS.windows?
@@ -337,10 +339,6 @@ metadatos.push('    </metadata>')
 identificadorToc['.'] = '_'
 identificadorToc = 'id_' + identificadorToc
 
-# Inicia la creación del manifiesto y de la espina
-manifiesto.push('    <manifest>')
-espina.push('    <spine toc="' + identificadorToc + '">')
-
 # Identifica los tipos de recursos existentes en el content según su tipo de extensión
 def Tipo (extension)
     if extension == '.xhtml'
@@ -384,29 +382,44 @@ end
 # Recorre todos los archivos en busca de los recursos para el manifiesto y la espina
 Dir.glob($carpeta + '/**/*.*') do |archivoManifiesto|
     if File.extname(archivoManifiesto) != '.xml' and File.extname(archivoManifiesto) != '.opf'
+
         # Crea el identificador
         identificador = File.basename(archivoManifiesto)
         identificador['.'] = '_'
         identificador = 'id_' + identificador
+
         # Añade el tipo de recurso
         tipo = Tipo File.extname(archivoManifiesto)
+
         # Añade propiedades
         propiedad = Propiedad File.basename(archivoManifiesto), $portada, 'cover-image'
         propiedad2 = Propiedad File.basename(archivoManifiesto), nav, 'nav'
+
         # Añade la propiedad no lineal, si la hay
         noLineal = NoLinealCotejo identificador
+
         # Agrega los elementos al manifiesto
         manifiesto.push('        <item href="' + rutaRelativa[indice] + '" id="' + identificador + '" media-type="' + tipo.to_s + '"' + propiedad.to_s + propiedad2.to_s + ' />')
+
         # Agrega los elementos a la espina
         if File.extname(archivoManifiesto) == '.xhtml' and File.basename(archivoManifiesto) != 'nav.xhtml'
             espina.push ('        <itemref idref="' + identificador + '"' + noLineal.to_s + '/>')
         end
+
         # Permite recurrir a la ruta relativa
         indice += 1
     end
 end
 
-# Termina la creación del manifiesto y de la espina
+# Acomoda los elementos alfabéticamente
+manifiesto = manifiesto.sort
+espina = espina.sort
+
+# Para el inicio del manifiesto y de la espina
+manifiesto.insert(0, '    <manifest>')
+espina.insert(0, '    <spine toc="' + identificadorToc + '">')
+
+# Para el fin del manifiesto y de la espina
 manifiesto.push('    </manifest>')
 espina.push('    </spine>')
 
