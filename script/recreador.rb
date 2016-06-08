@@ -21,6 +21,7 @@ $blanco = ' [dejar en blanco para ignorar o terminar]:'
 $necesario = ' [campo necesario]:'
 
 # Elemento común para crear los archivos
+$divisor = '/'              # Probablemente necesite modificación para Windows
 $carpeta = ''
 $primerosArchivos = Array.new
 
@@ -59,7 +60,7 @@ def carpetaBusqueda
     # Si no se da una línea vacía
     if $carpeta != ''
         # Si dentro de los directorios hay un opf, entonces se supone que hay archivos para un EPUB
-        Dir.glob($carpeta + '/**') do |archivo|
+        Dir.glob($carpeta + $divisor + '**') do |archivo|
             if File.basename(archivo) == "mimetype"
                 epub = true
             else
@@ -83,12 +84,12 @@ end
 carpetaBusqueda
 
 # Se obtiene la ruta para el EPUB
-ruta = $carpeta.split("/")
+ruta = $carpeta.split($divisor)
 rutaPadre = ''
 ruta.each do |parte|
     if parte != ruta.last
         if parte != ruta.first
-            rutaPadre += '/' + parte
+            rutaPadre += $divisor + parte
         else
             rutaPadre += parte
         end
@@ -103,7 +104,7 @@ Dir.chdir(rutaPadre)
 metadatosPreexistentes = false
 $metadatoPreexistenteNombre = ".recreador-metadata"
 
-Dir.glob(rutaPadre + '/.*') do |archivo|
+Dir.glob(rutaPadre + $divisor + '.*') do |archivo|
     if File.basename(archivo) == $metadatoPreexistenteNombre
         metadatosPreexistentes = true
     end
@@ -292,7 +293,7 @@ nombreOpf = ''
 identificadorNcx = ''
 
 # Obtiene las rutas absolutas
-Dir.glob($carpeta + '/**/*.*') do |archivo|
+Dir.glob($carpeta + $divisor + '**' + $divisor + '*.*') do |archivo|
     # Los únicos dos archivos que no se necesitan es el container y el opf
     if File.extname(archivo) != '.xml' and File.extname(archivo) != '.opf'
         rutaAbsoluta.push(archivo)
@@ -308,7 +309,7 @@ Dir.glob($carpeta + '/**/*.*') do |archivo|
 end
 
 # Crea otro conjunto que servirá para las rutas relativas
-Dir.glob($carpeta + '/**/*.*') do |archivoCorto|
+Dir.glob($carpeta + $divisor + '**' + $divisor + '*.*') do |archivoCorto|
     if File.extname(archivoCorto) != '.xml' and File.extname(archivoCorto) != '.opf'
         rutaRelativa.push(archivoCorto)
     # Obtiene la ruta común de los archivos
@@ -441,7 +442,7 @@ def Propiedad (archivo, comparacion, propiedad)
 end
 
 # Recorre todos los archivos en busca de los recursos para el manifiesto y la espina
-Dir.glob($carpeta + '/**/*.*') do |archivoManifiesto|
+Dir.glob($carpeta + $divisor + '**' + $divisor + '*.*') do |archivoManifiesto|
     if File.extname(archivoManifiesto) != '.xml' and File.extname(archivoManifiesto) != '.opf'
 
         # Crea el identificador
@@ -484,7 +485,7 @@ espina.insert(0, '    <spine toc="' + identificadorNcx + '">')
 manifiesto.push('    </manifest>')
 espina.push('    </spine>')
 
-Dir.glob($carpeta + '/**/*.*') do |archivo|
+Dir.glob($carpeta + $divisor + '**' + $divisor + '*.*') do |archivo|
     if File.extname(archivo) == '.opf'
         # Inicia la recreación del opf
         puts "\nRecreando el " + File.basename(archivo) + "..."
@@ -521,7 +522,6 @@ end
 
 # Para empezar a recrear el ncx y el nav
 $archivosTocs = Array.new
-$divisor = '/'              # Probablemente necesite modificación para Windows
 $coletillaXhtml = ''
 $coletillaNav = ''
 $coletillaNcx = ''
@@ -607,15 +607,58 @@ archivosNoMostrar = archivosNoMostrar.sort
 # Elimina los elementos que no se tienen que mostrar
 $archivosTocs = $archivosTocs.reject {|w| archivosNoMostrar.include? w}
 
+# Obtiene cada una de las rutas absolutas de los xhtml
+$rutaAbsolutaXhtml = Array.new
+
+rutaAbsoluta.each do |elemento|
+    if File.extname(elemento) == '.xhtml' and File.basename(elemento) != $nav
+        $rutaAbsolutaXhtml.push(elemento)
+    end
+end
+
+# Crea una relacion entre el nombre del archivo y su título
+$nombreYtitulo = Array.new
+
+$rutaAbsolutaXhtml.each do |i|
+    archivoXhtml = File.open(i)
+    archivoXhtml.each do |linea|
+
+        # Examina si en alguna línea del texto existe la etiqueta <title>
+        if (linea =~ /<title>(.*)/ )
+
+            # Elimina los espacios al inciio y al final
+            linea = linea.strip
+
+            # Toma la parte que está adentro de la etiqueta
+            linea = linea.split('<title>')[1]
+            linea = linea.split('</title>')[0]
+
+            # Crea un nuevo conjunto en donde se añaden el nombre del archivo y el título
+            conjunto = Array.new
+            conjunto.push(File.basename(i))
+            conjunto.push(linea)
+
+            # Añade este conjunto al conjunto que sirve como relación
+            $nombreYtitulo.push(conjunto)
+        end
+    end
+end
+
+# Otorga el título de cada documento xhtml
+def Titulo (elemento)
+    titulo = ''
+    $nombreYtitulo.each do |i|
+        if i[0] == elemento
+            titulo = i[1]
+            break
+        end
+    end
+    return titulo
+end
+
+# Para empezar a crear el ncx y el nav
 $archivosNcx = Array.new
 $archivosNav = Array.new
-
-# puts identificadorLibro
-# puts $coletillaNcx
-# puts $coletillaNav
-# puts $titulo
-# puts $creador
-# puts $lenguaje
 
 # Añade los primeros elementos de los tocs
 $archivosNcx.push('<?xml version="1.0" encoding="UTF-8" standalone="no" ?>')
@@ -649,8 +692,9 @@ indice = 1
 
 # Para recrear los tocs
 $archivosTocs.each do |at|
-    $archivosNcx.push('        <navPoint id="navPoint-' + indice.to_s + '" playOrder="' + indice.to_s + '"><navLabel><text>ALGO</text></navLabel><content src="' + $coletillaNcx + at.to_s + '"/></navPoint>')
-    $archivosNav.push('                <li><a href="' + $coletillaNav + at.to_s + '">ALGO</a></li>')
+    titulo = Titulo File.basename(at)
+    $archivosNcx.push('        <navPoint id="navPoint-' + indice.to_s + '" playOrder="' + indice.to_s + '"><navLabel><text>' + titulo.to_s + '</text></navLabel><content src="' + $coletillaNcx + at.to_s + '"/></navPoint>')
+    $archivosNav.push('                <li><a href="' + $coletillaNav + at.to_s + '">' + titulo.to_s + '</a></li>')
     indice += 1
 end
 
@@ -662,6 +706,7 @@ $archivosNav.push('            </ol>')
 $archivosNav.push('        </nav>')
 
 # AQUÍ VA EL RESTO DEL NAV
+# puts $rutaAbsolutaXhtml
 
 # Añade los últimos elementos del nav
 $archivosNav.push('    </body>')
@@ -673,7 +718,7 @@ def Recreador (comparativo, archivosToc)
     archivoEncontrado = ''
 
     # Localiza el archivo que se pretende recrear
-    Dir.glob($carpeta + '/**/*.*') do |archivo|
+    Dir.glob($carpeta + $divisor + '**' + $divisor + '*.*') do |archivo|
         if comparativo == ".ncx"
             if File.extname(archivo) == comparativo
                 archivoEncontrado = archivo
