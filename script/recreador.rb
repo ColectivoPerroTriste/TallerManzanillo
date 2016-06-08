@@ -99,12 +99,12 @@ end
 rutaPadre = ArregloRuta rutaPadre
 
 # Verifica si existe un archivo oculto de metadatos
-Dir.chdir(rutaPadre)
+Dir.chdir($carpeta)
 
 metadatosPreexistentes = false
 $metadatoPreexistenteNombre = ".recreador-metadata"
 
-Dir.glob(rutaPadre + $divisor + '.*') do |archivo|
+Dir.glob($carpeta + $divisor + '.*') do |archivo|
     if File.basename(archivo) == $metadatoPreexistenteNombre
         metadatosPreexistentes = true
     end
@@ -705,8 +705,73 @@ $archivosNcx.push('</ncx>')
 $archivosNav.push('            </ol>')
 $archivosNav.push('        </nav>')
 
-# AQUÍ VA EL RESTO DEL NAV
-# puts $rutaAbsolutaXhtml
+# Para obtener los números de páginas
+$nombreYpaginas = Array.new
+
+$rutaAbsolutaXhtml.each do |i|
+    # Por defecto no hay páginas
+    continuar = false
+
+    # Sirve para poner los identificadores de las páginas
+    conjunto = Array.new
+
+    archivoXhtml = File.open(i)
+    archivoXhtml.each do |linea|
+
+        # Examina si en alguna línea del texto existe la etiqueta <title>
+        if (linea =~ /epub:type="pagebreak"(.*)/ )
+
+            # Toma lo que está adentro del id de la página
+            linea = linea.split('epub:type="pagebreak"')[1]
+            linea = linea.split('title="')[0]
+            linea = linea.split('"')[1]
+
+            # Elimina los espacios al inciio y al final
+            linea = linea.strip
+
+            # Crea un nuevo conjunto en donde se añaden el nombre del archivo y el título
+            conjunto.push(linea)
+
+            # Habilita el llenado de la relación
+            continuar = true
+        end
+    end
+
+    if continuar == true
+        # Añade este conjunto al conjunto que sirve como relación
+        conjuntoFinal = Array.new
+        conjuntoFinal.push(File.basename(i))
+        conjuntoFinal.push(conjunto)
+        $nombreYpaginas.push(conjuntoFinal)
+    end
+end
+
+# Pone la lista de cada una de las páginas
+def Paginas (at)
+    elemento = File.basename(at)
+    $nombreYpaginas.each do |i|
+        if i[0] == elemento
+            i[1].each do |j|
+                n = j.downcase.gsub(/[^0-9]/,'')
+                $archivosNav.push('                <li><a href="' + $coletillaNav + at.to_s + '#' + j.to_s + '">' + n.to_s + '</a></li>')
+            end
+            break
+        end
+    end
+end
+
+# Si existen páginas, se agregan más elementos al nav
+if $nombreYpaginas.length > 0
+    $archivosNav.push('        <nav epub:type="page-list">')
+    $archivosNav.push('            <ol epub:type="list">')
+
+    $archivosTocs.each do |at|
+        Paginas at
+    end
+
+    $archivosNav.push('            </ol>')
+    $archivosNav.push('        </nav>')
+end
 
 # Añade los últimos elementos del nav
 $archivosNav.push('    </body>')
@@ -748,9 +813,6 @@ end
 Recreador '.ncx', $archivosNcx
 Recreador $nav, $archivosNav
 
-# Va a la carpeta del EPUB para tener posibilidad de crearlo
-Dir.chdir($carpeta)
-
 # Fin
 mensajeFinal = "\nEl proceso ha terminado."
 
@@ -765,7 +827,7 @@ if OS.unix?
 
     # # Crea el EPUB
     system ("zip #{rutaEPUB} -X mimetype")
-    system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store")
+    system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store #{$metadatoPreexistenteNombre}")
 
     # Finaliza la creación
     puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
