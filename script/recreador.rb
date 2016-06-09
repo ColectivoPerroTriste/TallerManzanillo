@@ -21,7 +21,7 @@ $blanco = ' [dejar en blanco para ignorar o terminar]:'
 $necesario = ' [campo necesario]:'
 
 # Elemento común para crear los archivos
-$divisor = '/'              # Probablemente necesite modificación para Windows
+$divisor = '/'
 $carpeta = ''
 $primerosArchivos = Array.new
 
@@ -43,14 +43,19 @@ def ArregloRuta (elemento)
     if elemento[-1] == ' '
         elemento = elemento[0...-1]
     end
-    elementoFinal = elemento.gsub('\ ', ' ').gsub('\'', '') # Probablemente necesite modificación para Windows
-    return elementoFinal
+    return elemento.gsub('\ ', ' ').gsub('\'', '')
 end
 
 # Determina si en la carpeta hay un EPUB
 def carpetaBusqueda
     puts "\nArrastra la carpeta donde están los archivos para el EPUB."
     $carpeta = gets.chomp
+    
+    if OS.windows?
+        puts $carpeta
+        $carpeta = $carpeta.gsub('\\', '/')
+        puts $carpeta
+    end
 
     $carpeta = ArregloRuta $carpeta
 
@@ -59,6 +64,7 @@ def carpetaBusqueda
 
     # Si no se da una línea vacía
     if $carpeta != ''
+        
         # Si dentro de los directorios hay un opf, entonces se supone que hay archivos para un EPUB
         Dir.glob($carpeta + $divisor + '**') do |archivo|
             if File.basename(archivo) == "mimetype"
@@ -166,7 +172,7 @@ def metadatosTodo
                 if (respuesta == "s")
                     noMostrar archivosConjunto
                 else
-                    noMostrarRespuesta texto
+                    noMostrarRespuesta archivosConjunto, texto
                 end
             end
         end
@@ -206,24 +212,26 @@ def metadatosTodo
     $archivosNoToc.push(' ')
 
     # Crea el archivo oculto con metadatos
-    archivoMetadatos = File.new(".recreador-metadata", "w")
+    if OS.unix?
+        archivoMetadatos = File.new(".recreador-metadata", "w")
 
-    $metadatosInicial.each do |mI|
-        archivoMetadatos.puts "_M_" + mI
+        $metadatosInicial.each do |mI|
+            archivoMetadatos.puts "_M_" + mI
+        end
+
+        $archivosNoLineales.each do |aNl|
+            archivoMetadatos.puts "_O_" + aNl
+        end
+
+        $archivosNoToc.each do |aNt|
+            archivoMetadatos.puts "_T_" + aNt
+        end
+
+        archivoMetadatos.puts "_P_" + $portada.to_s
+        archivoMetadatos.puts "_N_" + $nav.to_s
+
+        archivoMetadatos.close
     end
-
-    $archivosNoLineales.each do |aNl|
-        archivoMetadatos.puts "_O_" + aNl
-    end
-
-    $archivosNoToc.each do |aNt|
-        archivoMetadatos.puts "_T_" + aNt
-    end
-
-    archivoMetadatos.puts "_P_" + $portada.to_s
-    archivoMetadatos.puts "_N_" + $nav.to_s
-
-    archivoMetadatos.close
 end
 
 # Continúa con la petición de información adicional

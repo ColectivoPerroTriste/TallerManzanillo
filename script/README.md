@@ -107,8 +107,9 @@ la lectura lineal).
 
 Mucha de esta información es reutilizada para la recreación del NCX y del NAV.
 Además, para evitar volver a introducir la información cada vez que se recreen
-los archivos, se guarda un archivo `.recreador-metadata` con esta información
-en la raíz de los archivos para el EPUB que nunca se incluye en el EPUB.
+los archivos, en sistemas UNIX se guarda un archivo `.recreador-metadata` con 
+esta información en la raíz de los archivos para el EPUB que nunca se incluye 
+en el EPUB.
 
     Si se utiliza una herramienta externa para crear el EPUB,
     se tiene que asegurar que no se incluya el archivo «.recreador-metadata».
@@ -157,5 +158,5 @@ El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB.
 * `CARPETA-PARA-EPUB`. La carpeta para el EPUB en cuya raíz está presente el
 `mimetype`.
   * `.recreador-metadata`. El archivo oculto que se crea o modifica para
-  conservar algunos metadatos.
+  conservar algunos metadatos. Solo en sistemas UNIX.
 * `CARPETA-PARA-EPUB.epub`. El EPUB que se crea o se modifica.
