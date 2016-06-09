@@ -10,7 +10,7 @@
 ## Descripción
 
 Este `script` recrea los archivos OPF, NCX y NAV así como crea o recrea el
-archivo EPUB
+archivo EPUB.
 
 ## Dependencias
 
@@ -21,8 +21,8 @@ Este `script` requiere:
 versión mínima de Ruby que se ha probado es la 1.9.3p484.
 
 * Zip 3.0. La mayoría de las distribuciones Linux y Mac OSX ya lo tienen
-preinstalado. Para Windows es necesario descargar el `zip.exe` desde [Info-ZIP]
-(ftp://ftp.info-zip.org/pub/infozip/win32/). Para Windows de 64 bits es el 
+preinstalado. Para Windows es necesario descargar el `zip.exe` en Info-ZIP
+desde ftp://ftp.info-zip.org/pub/infozip/win32/. Para Windows de 64 bits es el 
 archivo `zip300xn-x64.zip` y para 32 bits, `zip300xn.zip`.
 
 ## Uso
@@ -148,15 +148,17 @@ archivo con sus respectivas páginas, para luego pasar a agregarse al NAV.
     La estructura para los números de página, independientemente de su
     ubicación, ha de ser «epub:type="pagebreak" id="page1" title="1"».
 
-### Creación o modificación del EPUB
+### Creación del EPUB
 
 Para que Ruby tenga la posibilidad de trabajar con archivos comprimidos, como
 es el caso de los archivos EPUB, es necesaria la instalación de una gema. Con
 el fin de no complicar la instalación, se ha tomado la decisión de prescindir
-de ella. Por ello es que la creación o modificación del EPUB se hace a partir
-de un llamado al *shell* mediante Ruby.
+de ella. Por ello es que la creación del EPUB se hace a partir de un llamado a 
+Zip 3.0 mediante Ruby.
 
-El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB.
+El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB,
+con el mismo nombre de la raíz. Si ya existe un EPUB con ese nombre, lo elimina
+para comprimir.
 
 ### Árbol de archivos creados
 
@@ -164,4 +166,4 @@ El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB.
 `mimetype`.
   * `.recreador-metadata`. El archivo oculto que se crea o modifica para
   conservar algunos metadatos.
-* `CARPETA-PARA-EPUB.epub`. El EPUB que se crea o se modifica.
+* `CARPETA-PARA-EPUB.epub`. El EPUB que se crea.
