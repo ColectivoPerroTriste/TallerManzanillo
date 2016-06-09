@@ -73,7 +73,8 @@ defecto la respuesta es sí.
 
 ###### 4. Para UNIX ¡es todo!, para Windows hay que arrastrar el `zip.exe` cuando lo pida.
 
-  * Desde el *shell* puedes leer cómo se recrean los siguientes archivos:
+  * Desde el *shell* puedes leer cómo se recrean o crean los siguientes 
+  archivos:
     * El archivo OPF.
     * El archivo NCX.
     * El archivo NAV.
