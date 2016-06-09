@@ -156,7 +156,7 @@ el fin de no complicar la instalación, se ha tomado la decisión de prescindir
 de ella. Por ello es que la creación del EPUB se hace a partir de un llamado a 
 Zip 3.0 mediante Ruby.
 
-El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB,
+El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB
 con el mismo nombre de la raíz. Si ya existe un EPUB con ese nombre, lo elimina
 para comprimir.
 
