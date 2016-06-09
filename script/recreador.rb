@@ -52,9 +52,7 @@ def carpetaBusqueda
     $carpeta = gets.chomp
     
     if OS.windows?
-        puts $carpeta
         $carpeta = $carpeta.gsub('\\', '/')
-        puts $carpeta
     end
 
     $carpeta = ArregloRuta $carpeta
@@ -212,26 +210,24 @@ def metadatosTodo
     $archivosNoToc.push(' ')
 
     # Crea el archivo oculto con metadatos
-    if OS.unix?
-        archivoMetadatos = File.new(".recreador-metadata", "w")
+    archivoMetadatos = File.new(".recreador-metadata", "w")
 
-        $metadatosInicial.each do |mI|
-            archivoMetadatos.puts "_M_" + mI
-        end
-
-        $archivosNoLineales.each do |aNl|
-            archivoMetadatos.puts "_O_" + aNl
-        end
-
-        $archivosNoToc.each do |aNt|
-            archivoMetadatos.puts "_T_" + aNt
-        end
-
-        archivoMetadatos.puts "_P_" + $portada.to_s
-        archivoMetadatos.puts "_N_" + $nav.to_s
-
-        archivoMetadatos.close
+    $metadatosInicial.each do |mI|
+        archivoMetadatos.puts "_M_" + mI
     end
+
+    $archivosNoLineales.each do |aNl|
+        archivoMetadatos.puts "_O_" + aNl
+    end
+
+    $archivosNoToc.each do |aNt|
+        archivoMetadatos.puts "_T_" + aNt
+    end
+
+    archivoMetadatos.puts "_P_" + $portada.to_s
+    archivoMetadatos.puts "_N_" + $nav.to_s
+
+    archivoMetadatos.close
 end
 
 # Continúa con la petición de información adicional
@@ -826,22 +822,38 @@ Recreador $nav, $archivosNav
 # Fin
 mensajeFinal = "\nEl proceso ha terminado."
 
-if OS.unix?
-    puts "\nCreando EPUB..."
+puts "\nCreando EPUB..."
 
-    # Crea la ruta para el EPUB
-    rutaEPUB = "../#{ruta.last}.epub"
+# Crea la ruta para el EPUB
+rutaEPUB = "../#{ruta.last}.epub"
 
-    # Elimina el EPUB previo
-    system ("rm -rf #{rutaEPUB}")
+# Por defecto se usa el comando de las terminales UNIX
+rm = "rm -rf #{rutaEPUB}"
+zip = 'zip'
 
-    # # Crea el EPUB
-    system ("zip #{rutaEPUB} -X mimetype")
-    system ("zip #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store #{$metadatoPreexistenteNombre}")
-
-    # Finaliza la creación
-    puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
-    puts mensajeFinal
-else
-    puts mensajeFinal + " Solo es necesario comprimir en formato EPUB."
+# Reajustes para Windows
+if OS.windows?
+    rutaEPUB = rutaEPUB.gsub('/', '\\')
+    rutaPadre = rutaPadre.gsub('/', '\\')
+    rm = "del #{rutaEPUB}"
+    puts "\nArrastra el zip.exe"
+    zip = gets.chomp
 end
+
+# Elimina el EPUB previo
+Dir.glob($carpeta + $divisor + '..' + $divisor + '**') do |archivo|
+    if File.basename(archivo) == ruta.last + '.epub'
+        puts "\nEliminando EPUB previo..."
+        system (rm)
+    end
+end
+
+puts "\nCreando nuevo EPUB..."
+
+# Crea el EPUB
+system ("#{zip} #{rutaEPUB} -X mimetype")
+system ("#{zip} #{rutaEPUB} -r #{$primerosArchivos[-2]} #{$primerosArchivos[-1]} -x \*.DS_Store #{$metadatoPreexistenteNombre}")
+
+# Finaliza la creación
+puts "\n#{ruta.last}.epub creado en: #{rutaPadre}"
+puts mensajeFinal

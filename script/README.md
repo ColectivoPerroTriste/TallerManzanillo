@@ -9,14 +9,21 @@
 
 ## Descripción
 
-Este `script` recrea los archivos OPF, NCX y NAV. En sistemas UNIX
-también crea o modifica el archivo EPUB.
+Este `script` recrea los archivos OPF, NCX y NAV así como crea o recrea el
+archivo EPUB
 
 ## Dependencias
 
-Este `script` requiere Ruby. [Véase aquí para instalar]
+Este `script` requiere:
+
+* Ruby. [Véase aquí para instalar]
 (https://www.ruby-lang.org/en/documentation/installation/#rubyinstaller). La
 versión mínima de Ruby que se ha probado es la 1.9.3p484.
+
+* Zip 3.0. La mayoría de las distribuciones Linux y Mac OSX ya lo tienen
+preinstalado. Para Windows es necesario descargar el `zip.exe` desde [Info-ZIP]
+(ftp://ftp.info-zip.org/pub/infozip/win32/). Para Windows de 64 bits es el 
+archivo `zip300xn-x64.zip` y para 32 bits, `zip300xn.zip`.
 
 ## Uso
 
@@ -27,7 +34,7 @@ final] y arrastra el archivo `recreador.rb`.
 
 ###### 2. Indica la carpeta donde están los archivos para el EPUB.
 
-Se tiene que poner la ruta absoluta sin `~`, para mayor comodidad solo arrastra
+Se tiene que poner la ruta absoluta entera, para mayor comodidad solo arrastra
 la carpeta al *shell*.
 
 ###### 3. A continuación responde lo que se te pide.
@@ -64,13 +71,13 @@ defecto la respuesta es sí.
     Siempre se pide la versión de la obra para permitir un control de
     versiones.
 
-###### 4. ¡Es todo!
+###### 4. Para UNIX ¡es todo!, para Windows hay que arrastrar el `zip.exe` cuando lo pida.
 
   * Desde el *shell* puedes leer cómo se recrean los siguientes archivos:
     * El archivo OPF.
     * El archivo NCX.
     * El archivo NAV.
-    * El EPUB (solo para sitemas UNIX).
+    * El EPUB.
 
 ## Explicación
 
@@ -80,9 +87,8 @@ La mayoría de los archivos EPUB tienen similitudes en su estructura, lo cual
 hace conveniente la utilización de plantillas. Si bien esto evita el problema
 de crear la estructura desde cero, persisten las dificultades de rehacer el OPF,
 el NCX y el NAV. En la gran mayoría de los casos, solo alguns metadatos
-requieren de una intervención directa. Ante esta problemática, este `script`
-está pensado para automatizar la serie de tareas monótonas para disminuir los
-tiempos de desarrollo y aumentar los ratos de ocio. (;
+requieren de una intervención directa. Este `script` está pensado para 
+solventar esta problemática.
 
 Para evitar la recreación en carpetas potencialmente conflictivas, el `script`
 solo arranca si se encuentra en la carpeta raíz del futuro EPUB, al localizar
@@ -107,9 +113,8 @@ la lectura lineal).
 
 Mucha de esta información es reutilizada para la recreación del NCX y del NAV.
 Además, para evitar volver a introducir la información cada vez que se recreen
-los archivos, en sistemas UNIX se guarda un archivo `.recreador-metadata` con 
-esta información en la raíz de los archivos para el EPUB que nunca se incluye 
-en el EPUB.
+los archivos, se guarda un archivo `.recreador-metadata` con esta información 
+en la raíz de los archivos para el EPUB.
 
     Si se utiliza una herramienta externa para crear el EPUB,
     se tiene que asegurar que no se incluya el archivo «.recreador-metadata».
@@ -158,5 +163,5 @@ El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB.
 * `CARPETA-PARA-EPUB`. La carpeta para el EPUB en cuya raíz está presente el
 `mimetype`.
   * `.recreador-metadata`. El archivo oculto que se crea o modifica para
-  conservar algunos metadatos. Solo en sistemas UNIX.
+  conservar algunos metadatos.
 * `CARPETA-PARA-EPUB.epub`. El EPUB que se crea o se modifica.
