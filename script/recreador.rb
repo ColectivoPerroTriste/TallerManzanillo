@@ -50,7 +50,7 @@ end
 def carpetaBusqueda
     puts "\nArrastra la carpeta donde están los archivos para el EPUB."
     $carpeta = gets.chomp
-    
+
     if OS.windows?
         $carpeta = $carpeta.gsub('\\', '/')
     end
@@ -62,7 +62,7 @@ def carpetaBusqueda
 
     # Si no se da una línea vacía
     if $carpeta != ''
-        
+
         # Si dentro de los directorios hay un opf, entonces se supone que hay archivos para un EPUB
         Dir.glob($carpeta + $divisor + '**') do |archivo|
             if File.basename(archivo) == "mimetype"
@@ -822,8 +822,6 @@ Recreador $nav, $archivosNav
 # Fin
 mensajeFinal = "\nEl proceso ha terminado."
 
-puts "\nCreando EPUB..."
-
 # Crea la ruta para el EPUB
 rutaEPUB = "../#{ruta.last}.epub"
 
@@ -840,15 +838,18 @@ if OS.windows?
     zip = gets.chomp
 end
 
+espacio = ' '
+
 # Elimina el EPUB previo
 Dir.glob($carpeta + $divisor + '..' + $divisor + '**') do |archivo|
     if File.basename(archivo) == ruta.last + '.epub'
+        espacio = ' nuevo '
         puts "\nEliminando EPUB previo..."
         system (rm)
     end
 end
 
-puts "\nCreando nuevo EPUB..."
+puts "\nCreando#{espacio}EPUB..."
 
 # Crea el EPUB
 system ("#{zip} #{rutaEPUB} -X mimetype")
