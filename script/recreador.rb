@@ -159,11 +159,11 @@ def metadatosTodo
 
     # Determina si es necesario definir archivos ocultos
     def noMostrarRespuesta (archivosConjunto, texto)
-        puts "\n" + texto + " [y/N]:"
+        puts "\n" + texto + " [s/N]:"
         respuesta = gets.chomp.downcase
         if (respuesta != "")
             if (respuesta != "n")
-                if (respuesta == "y")
+                if (respuesta == "s")
                     noMostrar archivosConjunto
                 else
                     noMostrarRespuesta texto
@@ -236,10 +236,10 @@ if metadatosPreexistentes == true
 
     # Pregunta sobre la pertinencia de reutilizar los metadatos
     def preguntaMetadatos
-        puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [Y/n]:"
+        puts "\nSe han encontrado metadatos preexistentes, ¿deseas conservarlos? [S/n]:"
         $respuestaMetadatos = gets.chomp.downcase
 
-        if $respuestaMetadatos == '' or $respuestaMetadatos == 'y'
+        if $respuestaMetadatos == '' or $respuestaMetadatos == 's'
             reutilizacionMetadatos
         elsif $respuestaMetadatos == 'n'
             metadatosTodo
