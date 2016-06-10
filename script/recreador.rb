@@ -1,4 +1,5 @@
-# encoding: utf-8
+# encoding: UTF-8
+# coding: UTF-8
 
 # Obtiene el tipo de sistema operativo; viene de: http://stackoverflow.com/questions/170956/how-can-i-find-which-operating-system-my-ruby-program-is-running-on
 module OS
@@ -71,7 +72,7 @@ def carpetaBusqueda
     end
 
     $carpeta = ArregloRuta $carpeta
-
+    puts $carpeta.encoding
     # Se parte del supuesto de que la carpeta no es para un EPUB
     epub = false
 
@@ -697,11 +698,11 @@ $archivosNcx.push('        <text>' + $creador + '</text>')
 $archivosNcx.push('    </docAuthor>')
 $archivosNcx.push('    <navMap>')
 
-$archivosNav.push('<?xml version="1.0" encoding="utf-8"?>')
+$archivosNav.push('<?xml version="1.0" encoding="UTF-8"?>')
 $archivosNav.push('<!DOCTYPE html>')
 $archivosNav.push('<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="' + $lenguaje + '" lang="' + $lenguaje + '">')
 $archivosNav.push('    <head>')
-$archivosNav.push('        <meta charset="utf-8" />')
+$archivosNav.push('        <meta charset="UTF-8" />')
 $archivosNav.push('        <title>' + $titulo + '</title>')
 $archivosNav.push('    </head>')
 $archivosNav.push('    <body>')
