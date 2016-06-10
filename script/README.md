@@ -22,7 +22,7 @@ versión mínima de Ruby que se ha probado es la 1.9.3p484.
 
 * Zip 3.0. La mayoría de las distribuciones Linux y Mac OSX ya lo tienen
 preinstalado. Para Windows es necesario descargar el `zip.exe` en Info-ZIP
-desde ftp://ftp.info-zip.org/pub/infozip/win32/. Para Windows de 64 bits es el 
+desde ftp://ftp.info-zip.org/pub/infozip/win32/. Para Windows de 64 bits es el
 archivo `zip300xn-x64.zip` y para 32 bits, `zip300xn.zip`.
 
 ## Uso
@@ -31,6 +31,9 @@ archivo `zip300xn-x64.zip` y para 32 bits, `zip300xn.zip`.
 
 Para mayor comodidad solo escribe en el *shell* `ruby ` [con un espacio al
 final] y arrastra el archivo `recreador.rb`.
+
+    Para usuarios de Windows, una vez instalado Ruby han de buscar el programa
+    «Start Command Prompt with Ruby» para poder ejecutar esta orden.
 
 ###### 2. Indica la carpeta donde están los archivos para el EPUB.
 
@@ -73,7 +76,7 @@ defecto la respuesta es sí.
 
 ###### 4. Para UNIX ¡es todo!, para Windows hay que arrastrar el `zip.exe` cuando lo pida.
 
-  * Desde el *shell* puedes leer cómo se recrean o crean los siguientes 
+  * Desde el *shell* puedes leer cómo se recrean o crean los siguientes
   archivos:
     * El archivo OPF.
     * El archivo NCX.
@@ -88,7 +91,7 @@ La mayoría de los archivos EPUB tienen similitudes en su estructura, lo cual
 hace conveniente la utilización de plantillas. Si bien esto evita el problema
 de crear la estructura desde cero, persisten las dificultades de rehacer el OPF,
 el NCX y el NAV. En la gran mayoría de los casos, solo alguns metadatos
-requieren de una intervención directa. Este `script` está pensado para 
+requieren de una intervención directa. Este `script` está pensado para
 solventar esta problemática.
 
 Para evitar la recreación en carpetas potencialmente conflictivas, el `script`
@@ -114,7 +117,7 @@ la lectura lineal).
 
 Mucha de esta información es reutilizada para la recreación del NCX y del NAV.
 Además, para evitar volver a introducir la información cada vez que se recreen
-los archivos, se guarda un archivo `.recreador-metadata` con esta información 
+los archivos, se guarda un archivo `.recreador-metadata` con esta información
 en la raíz de los archivos para el EPUB.
 
     Si se utiliza una herramienta externa para crear el EPUB,
@@ -154,7 +157,7 @@ archivo con sus respectivas páginas, para luego pasar a agregarse al NAV.
 Para que Ruby tenga la posibilidad de trabajar con archivos comprimidos, como
 es el caso de los archivos EPUB, es necesaria la instalación de una gema. Con
 el fin de no complicar la instalación, se ha tomado la decisión de prescindir
-de ella. Por ello es que la creación del EPUB se hace a partir de un llamado a 
+de ella. Por ello es que la creación del EPUB se hace a partir de un llamado a
 Zip 3.0 mediante Ruby.
 
 El EPUB se crea en la carpeta padre de la raíz de los archivos para el EPUB

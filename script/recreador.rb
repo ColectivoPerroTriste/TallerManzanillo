@@ -43,7 +43,22 @@ def ArregloRuta (elemento)
     if elemento[-1] == ' '
         elemento = elemento[0...-1]
     end
-    return elemento.gsub('\ ', ' ').gsub('\'', '')
+
+    # Elimina caracteres conficlitos
+    elementoFinal = elemento.gsub('\ ', ' ').gsub('\'', '')
+
+    if OS.windows?
+        # En Windows cuando hay rutas con espacios se agregan comillas dobles que se tiene que eliminar
+        elementoFinal = elementoFinal.gsub('""', '')
+    else
+        # En UNIX pueden quedar diagonales de espace que también se ha de eliminar
+        elementoFinal =  elementoFinal.gsub('\\', '')
+    end
+
+    # Se codifica para que no exista problemas con las tildes
+    elementoFinal = elementoFinal.encode!
+
+    return elementoFinal
 end
 
 # Determina si en la carpeta hay un EPUB
