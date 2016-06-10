@@ -1,6 +1,8 @@
 # encoding: UTF-8
 # coding: UTF-8
 
+Encoding.default_internal = Encoding::UTF_8
+
 # Obtiene el tipo de sistema operativo; viene de: http://stackoverflow.com/questions/170956/how-can-i-find-which-operating-system-my-ruby-program-is-running-on
 module OS
     def OS.windows?
@@ -50,14 +52,14 @@ def ArregloRuta (elemento)
 
     if OS.windows?
         # En Windows cuando hay rutas con espacios se agregan comillas dobles que se tiene que eliminar
-        elementoFinal = elementoFinal.gsub('""', '')
+        elementoFinal = elementoFinal.gsub('"', '')
     else
         # En UNIX pueden quedar diagonales de espace que también se ha de eliminar
         elementoFinal =  elementoFinal.gsub('\\', '')
     end
 
     # Se codifica para que no exista problemas con las tildes
-    elementoFinal = elementoFinal.encode!
+    elementoFinal = elementoFinal.encode!(Encoding::UTF_8)
 
     return elementoFinal
 end
@@ -72,7 +74,7 @@ def carpetaBusqueda
     end
 
     $carpeta = ArregloRuta $carpeta
-    puts $carpeta.encoding
+    puts $carpeta
     # Se parte del supuesto de que la carpeta no es para un EPUB
     epub = false
 
@@ -226,7 +228,7 @@ def metadatosTodo
     $archivosNoToc.push(' ')
 
     # Crea el archivo oculto con metadatos
-    archivoMetadatos = File.new(".recreador-metadata", "w")
+    archivoMetadatos = File.new(".recreador-metadata", "w:UTF-8")
 
     $metadatosInicial.each do |mI|
         archivoMetadatos.puts "_M_" + mI
@@ -270,7 +272,7 @@ if metadatosPreexistentes == true
 
     # Reutiliza los metadatos
     def reutilizacionMetadatos
-        metadatoPreexistente = File.open($metadatoPreexistenteNombre)
+        metadatoPreexistente = File.open($metadatoPreexistenteNombre, 'r:UTF-8')
         metadatoPreexistente.each do |linea|
             lineaCortaInicio = linea[0...3]
             lineaCortaFinal = linea[3...-1]
@@ -511,7 +513,7 @@ Dir.glob($carpeta + $divisor + '**' + $divisor + '*.*') do |archivo|
         puts "\nRecreando el " + File.basename(archivo) + "..."
 
         # Abre el opf
-        opf = File.open(archivo, 'w')
+        opf = File.open(archivo, 'w:UTF-8')
 
         # Añade los primeros elementos necesarios
         opf.puts '<?xml version="1.0" encoding="UTF-8"?>'
@@ -640,7 +642,7 @@ end
 $nombreYtitulo = Array.new
 
 $rutaAbsolutaXhtml.each do |i|
-    archivoXhtml = File.open(i)
+    archivoXhtml = File.open(i, 'r:UTF-8')
     archivoXhtml.each do |linea|
 
         # Examina si en alguna línea del texto existe la etiqueta <title>
@@ -736,7 +738,7 @@ $rutaAbsolutaXhtml.each do |i|
     # Sirve para poner los identificadores de las páginas
     conjunto = Array.new
 
-    archivoXhtml = File.open(i)
+    archivoXhtml = File.open(i, 'r:UTF-8')
     archivoXhtml.each do |linea|
 
         # Examina si en alguna línea del texto existe la etiqueta <title>
@@ -821,7 +823,7 @@ def Recreador (comparativo, archivosToc)
     puts "\nRecreando el " + File.basename(archivoEncontrado) + "..."
 
     # Abre el archivo
-    archivoCambio = File.open(archivoEncontrado, 'w')
+    archivoCambio = File.open(archivoEncontrado, 'w:UTF-8')
 
     # Añade los elementos
     archivosToc.each do |linea|
