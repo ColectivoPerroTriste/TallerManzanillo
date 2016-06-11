@@ -79,10 +79,10 @@ defecto la respuesta es sí.
   * Desde el *shell* puedes leer cómo se recrean o crean los siguientes
   archivos:
 
-    * El archivo OPF.
-    * El archivo NCX.
-    * El archivo NAV.
-    * El EPUB.
+  * El archivo OPF.
+  * El archivo NCX.
+  * El archivo NAV.
+  * El EPUB.
 
 ## Explicación
 
