@@ -37,7 +37,7 @@ final] y arrastra el archivo `recreador.rb`.
 
 ###### 2. Indica la carpeta donde están los archivos para el EPUB.
 
-Se tiene que poner la ruta absoluta entera, para mayor comodidad solo arrastra
+Se tiene que poner la ruta absoluta, para mayor comodidad solo arrastra
 la carpeta al *shell*.
 
 ###### 3. A continuación responde lo que se te pide.
@@ -78,6 +78,7 @@ defecto la respuesta es sí.
 
   * Desde el *shell* puedes leer cómo se recrean o crean los siguientes
   archivos:
+
     * El archivo OPF.
     * El archivo NCX.
     * El archivo NAV.
